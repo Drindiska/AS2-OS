@@ -12,11 +12,11 @@ import java.util.Queue;
 
 public class SimulationInstanceImpl implements SimulationInstance {
     private Queue<Instruction> remainingInstructions;
-    private final Memory memory;
+    private final MemoryImpl memory;
     private final StrategyType strategyType;
     private List<InstructionException> instructionExceptions;
 
-    public SimulationInstanceImpl(Queue<Instruction> instructions, Memory memory, StrategyType strategyType){
+    public SimulationInstanceImpl(Queue<Instruction> instructions, MemoryImpl memory, StrategyType strategyType){
         this.remainingInstructions = instructions;
         this.memory = memory;
         this.strategyType = strategyType;
