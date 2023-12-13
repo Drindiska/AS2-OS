@@ -3,12 +3,19 @@ package se.lnu.os.ht23.a2.required;
 import se.lnu.os.ht23.a2.provided.data.BlockInterval;
 import se.lnu.os.ht23.a2.provided.interfaces.Memory;
 
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
 public class MemoryImpl implements Memory {
 
     private final int size;
+    private Dictionary<Integer, Integer> memory = new Hashtable<>();
+    private Dictionary<Integer, Integer> blockListNoneAllocated = new Hashtable<>();
+    private Dictionary<Integer, Integer> blockListAllocated = new Hashtable<>();
 
     public MemoryImpl(int size){
         /* TODO
@@ -16,12 +23,61 @@ public class MemoryImpl implements Memory {
             should create an empty memory of the given size. Feel free to add any variable or method you see
             fit for your implementation in this class
          */
+
+        int counter = 0;
+        while (counter != size) {
+            memory.put(counter, null);
+            counter = counter + 1;
+        }
         this.size = size;
+    }
+
+    public void AddBlock(int idBlock, int dimension) {
+        blockListNoneAllocated.put(idBlock, dimension);
+    }
+
+    public void AllocateBlock(int idBlock, int dimension) {
+        // memoryAvaible is a counter to count the size of the block avaible.
+        //CurrentMemory is the current block selected
+        int memoryAvaible = 0;
+        ArrayList<Integer> currentMemory = new ArrayList<Integer>();
+        
+        // We will go throug all the memory slots.
+        Enumeration<Integer> id = memory.keys();
+        while (id.hasMoreElements()) {
+            // get the current memory.
+            int key = id.nextElement();
+            // if memory not avaible else if avaible.
+            if (memory.get(key) != 0) {
+                memoryAvaible = 0;
+            } else if (memory.get(key) == null) {
+                memoryAvaible = memoryAvaible + 1;
+            }
+
+            // if the memory is enough to put the instruction.
+            if (memoryAvaible == dimension) {
+                // we set the memory to taken.
+                for (int i: currentMemory) {
+                    memory.put(i, idBlock);
+                }
+                // we add the block to the dictionay allocated and delete it from the unassigned block.
+                blockListAllocated.put(idBlock, dimension);
+                blockListNoneAllocated.remove(idBlock);
+            }
+        }
     }
 
     @Override
     public boolean containsBlock(int blockId) {
         // TODO Replace this return statement with the method that checks if blockId is allocated in the memory
+
+        Enumeration<Integer> id = blockListAllocated.keys();
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            if (key == blockId) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -31,7 +87,15 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the list of blockIds of the currently allocated blocks
             in the memory. If the memory is empty, return an empty List.
          */
-        return null;
+
+        List<Integer> listIds = new ArrayList<Integer>();
+
+        Enumeration<Integer> id = blockListAllocated.keys();
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            listIds.add(key);
+        }
+        return listIds;
     }
 
     @Override
@@ -40,16 +104,42 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the method that returns the dimension of the block with blockId
             in the memory, 0 if it is not allocated.
          */
+        Enumeration<Integer> id = blockListAllocated.keys();
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            if (key == blockId) {
+                return blockListAllocated.get(key);
+            }
+        }
         return 0;
     }
 
     @Override
     public BlockInterval getBlockInterval(int blockId) {
+        int lowAddress = 0;
+        int highAddress= 0;
+        boolean allocated = false;
         /* TODO
             Replace this return statement with the method that returns a BlockInterval instance containing the
             lower and upper address in memory of the block with blockId. Return null if the block is not allocated
          */
-        return null;
+        Enumeration<Integer> id = memory.keys();
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            if (memory.get(key) == blockId) {
+                if (allocated) {
+                    highAddress = key;
+                } else {
+                    lowAddress = key;
+                    allocated = true;
+                }
+            }
+        }
+        if (allocated) {
+            return new BlockInterval(lowAddress, highAddress);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -57,7 +147,7 @@ public class MemoryImpl implements Memory {
         /* TODO
             Replace this return statement with the method that returns the Set containing the ids of all the
             contiguous blocks to the one that has blockId (min. 0 if the block is between two free portions of
-            memory and max. 2 if the block is surrounded both left and right by other blocks). For no neighboring
+              memory and max. 2 if the block is surrounded both left and right by other blocks). For no neighboring
             blocks, return an empty Set.
          */
         return null;
