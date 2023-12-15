@@ -3,6 +3,8 @@ package se.lnu.os.ht23.a2.required;
 import se.lnu.os.ht23.a2.provided.data.StrategyType;
 import se.lnu.os.ht23.a2.provided.abstract_.Instruction;
 import se.lnu.os.ht23.a2.provided.exceptions.InstructionException;
+import se.lnu.os.ht23.a2.provided.instructions.AllocationInstruction;
+import se.lnu.os.ht23.a2.provided.instructions.DeallocationInstruction;
 import se.lnu.os.ht23.a2.provided.interfaces.Memory;
 import se.lnu.os.ht23.a2.provided.interfaces.SimulationInstance;
 
@@ -32,6 +34,24 @@ public class SimulationInstanceImpl implements SimulationInstance {
              hole for an AllocationInstruction, you should choose the one with the lowest address among them.
              For FIRST_FIT, always start from the address 0 when searching for a valid hole.
          */
+
+        while (remainingInstructions.size() > 0) {
+            boolean success = true;
+            Instruction instruction = remainingInstructions.remove();
+            if (instruction instanceof AllocationInstruction) {
+                AllocationInstruction allocation = (AllocationInstruction) instruction;
+                success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension());
+            } else if (instruction instanceof DeallocationInstruction) {
+                DeallocationInstruction allocation = (DeallocationInstruction) instruction;
+                success = memory.unAllocate(allocation.getBlockId());
+            } else {
+                memory.compact();
+            }
+            if (success == false) {
+                instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+            }
+            
+        }
     }
 
     @Override
@@ -40,6 +60,25 @@ public class SimulationInstanceImpl implements SimulationInstance {
             Implement the method to run a stepped simulation (one step = one instruction). If steps > actual available
             instructions, just run all the simulation.
          */
+        
+        boolean success = true;
+        if (steps >= remainingInstructions.size()) {
+            runAll();
+        } else {
+            Instruction instruction = remainingInstructions.remove();
+            if (instruction instanceof AllocationInstruction) {
+                AllocationInstruction allocation = (AllocationInstruction) instruction;
+                success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension());
+            } else if (instruction instanceof DeallocationInstruction) {
+                DeallocationInstruction allocation = (DeallocationInstruction) instruction;
+                success = memory.unAllocate(allocation.getBlockId());
+            } else {
+                memory.compact();
+            }
+            if (success == false) {
+                instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+            }
+        }
     }
 
     @Override
