@@ -52,7 +52,7 @@ class SimulationTests {
         SimulationInstance sim = new SimulationInstanceImpl(
                 instr,
                 new MemoryImpl(10),
-                StrategyType.FIRST_FIT);
+                StrategyType.WORST_FIT);
         assertEquals(2, sim.getInstructions().size());
         assertInstanceOf(DeallocationInstruction.class, sim.getInstructions().peek());
         assertEquals(100, ((DeallocationInstruction) Objects.requireNonNull(sim.getInstructions().peek())).getBlockId());
@@ -76,4 +76,85 @@ class SimulationTests {
         assertTrue(sim.getMemory().freeSlots().contains(new BlockInterval(5, 9)));
         assertEquals(0, sim.getMemory().fragmentation());
     }
+
+    @Test
+    void deleteInstructionTest() {
+        Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+                new AllocationInstruction(1,5),
+                new DeallocationInstruction(1)
+        ));
+        SimulationInstance sim = new SimulationInstanceImpl(
+                instr,
+                new MemoryImpl(10),
+                StrategyType.WORST_FIT);
+        assertEquals(2, sim.getInstructions().size());
+        sim.run(1);
+        assertEquals(1, sim.getInstructions().size());
+        sim.run(1);
+        assertEquals(0, sim.getInstructions().size());
+        assertFalse(sim.getMemory().containsBlock(1));
+    }
+
+    @Test
+    void compactInstructionTest() {
+        Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+                new AllocationInstruction(1,5),
+                new AllocationInstruction(2,1),
+                new AllocationInstruction(3,2),
+                new DeallocationInstruction(2),
+                new CompactInstruction()
+        ));
+        SimulationInstance sim = new SimulationInstanceImpl(
+                instr,
+                new MemoryImpl(10),
+                StrategyType.FIRST_FIT);
+        sim.run(3);
+        assertEquals(2, sim.getInstructions().size());
+        assertEquals(0, sim.getMemory().getBlockInterval(1).getLowAddress());
+        assertEquals(4, sim.getMemory().getBlockInterval(1).getHighAddress());
+        assertEquals(5, sim.getMemory().getBlockInterval(2).getLowAddress());
+        assertEquals(5, sim.getMemory().getBlockInterval(2).getHighAddress());
+        assertEquals(6, sim.getMemory().getBlockInterval(3).getLowAddress());
+        assertEquals(7, sim.getMemory().getBlockInterval(3).getHighAddress());
+        sim.run(2);
+        assertEquals(5, sim.getMemory().getBlockInterval(3).getLowAddress());
+        assertEquals(6, sim.getMemory().getBlockInterval(3).getHighAddress());
+    }
+
+    @Test
+    void noSpaceLeftTest() {
+        Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+                new AllocationInstruction(1,5),
+                new AllocationInstruction(2,2),
+                new AllocationInstruction(3,2),
+                new DeallocationInstruction(2),
+                new AllocationInstruction(4, 3)
+        ));
+        SimulationInstance sim = new SimulationInstanceImpl(
+                instr,
+                new MemoryImpl(10),
+                StrategyType.WORST_FIT);
+        sim.runAll();
+        assertTrue(sim.getMemory().containsBlock(1));
+        assertTrue(sim.getMemory().containsBlock(3));
+        assertFalse(sim.getMemory().containsBlock(4));
+        assertFalse(sim.getMemory().containsBlock(2));
+    }
+
+    @Test
+    void objectAlreadyExist() {
+        Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+                new AllocationInstruction(1,5),
+                new AllocationInstruction(1,2)
+        ));
+        SimulationInstance sim = new SimulationInstanceImpl(
+                instr,
+                new MemoryImpl(10),
+                StrategyType.BEST_FIT);
+        sim.run(2);
+        assertTrue(sim.getMemory().containsBlock(1));
+        assertEquals(1, sim.getExceptions().size());
+    }
+
 }
+

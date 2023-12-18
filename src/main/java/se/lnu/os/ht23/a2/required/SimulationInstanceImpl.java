@@ -40,7 +40,7 @@ public class SimulationInstanceImpl implements SimulationInstance {
             Instruction instruction = remainingInstructions.remove();
             if (instruction instanceof AllocationInstruction) {
                 AllocationInstruction allocation = (AllocationInstruction) instruction;
-                success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension());
+                success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension(), strategyType);
             } else if (instruction instanceof DeallocationInstruction) {
                 DeallocationInstruction allocation = (DeallocationInstruction) instruction;
                 success = memory.unAllocate(allocation.getBlockId());
@@ -65,18 +65,21 @@ public class SimulationInstanceImpl implements SimulationInstance {
         if (steps >= remainingInstructions.size()) {
             runAll();
         } else {
-            Instruction instruction = remainingInstructions.remove();
-            if (instruction instanceof AllocationInstruction) {
-                AllocationInstruction allocation = (AllocationInstruction) instruction;
-                success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension());
-            } else if (instruction instanceof DeallocationInstruction) {
-                DeallocationInstruction allocation = (DeallocationInstruction) instruction;
-                success = memory.unAllocate(allocation.getBlockId());
-            } else {
-                memory.compact();
-            }
-            if (success == false) {
-                instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+            while (steps > 0) {
+                Instruction instruction = remainingInstructions.remove();
+                if (instruction instanceof AllocationInstruction) {
+                    AllocationInstruction allocation = (AllocationInstruction) instruction;
+                    success = memory.AllocateBlock(allocation.getBlockId(), allocation.getDimension(), strategyType);
+                } else if (instruction instanceof DeallocationInstruction) {
+                    DeallocationInstruction allocation = (DeallocationInstruction) instruction;
+                    success = memory.unAllocate(allocation.getBlockId());
+                } else {
+                    memory.compact();
+                }
+                if (success == false) {
+                    instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+                }
+                steps = steps - 1;
             }
         }
     }
