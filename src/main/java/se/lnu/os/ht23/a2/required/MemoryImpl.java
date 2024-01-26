@@ -52,6 +52,7 @@ public class MemoryImpl implements Memory {
         ArrayList<Integer> currentMemory = new ArrayList<Integer>();
 
         if (this.containsBlock(idBlock)) {
+            System.out.println("Error : already exist");
             return false;
         }
 
@@ -82,13 +83,26 @@ public class MemoryImpl implements Memory {
             // if memory avaible : add 1 to the memory avaible and arraylist of the current block.
             // if the block is not avaible, we verify if the object have gone thru is the biggest or the smallest.
             if (memory.get(key) != -1) {
-                if (memoryAvaible > dimension) {
-                    if (currentMemory.size() > biggestMemory.size() && memoryAvaible >= dimension) {
-                        biggestMemory = currentMemory;
+                if (memoryAvaible >= dimension) {
+                    if (currentMemory.size() > biggestMemory.size()) {
+                        biggestMemory.clear();
+                        for (int keybig : currentMemory) {
+                            biggestMemory.add(keybig);
+                        }
                     }
-                    if (currentMemory.size() < smalestMemory.size() && memoryAvaible >= dimension) {
-                        smalestMemory = currentMemory;
+                    if (currentMemory.size() < smalestMemory.size()) {
+                        smalestMemory.clear();
+                        for (int keybig : currentMemory) {
+                            smalestMemory.add(keybig);
+                        }
                     }
+                    if (smalestMemory.size() == 0) {
+                        smalestMemory.clear();
+                        for (int keybig : currentMemory) {
+                            smalestMemory.add(keybig);
+                        }
+                    }
+                    System.out.println(biggestMemory);
                 }
                 // clear the currently selected block.
                 memoryAvaible = 0;
@@ -99,17 +113,18 @@ public class MemoryImpl implements Memory {
             }
 
             // if the memory is enough to put the instruction and the strategy is the first fit.
-            if (memoryAvaible == dimension && strategy == StrategyType.FIRST_FIT) {
+            if (memoryAvaible >= dimension && strategy == StrategyType.FIRST_FIT) {
                 // we set the memory to taken.
                 for (int i: currentMemory) {
                     memory.put(i, idBlock);
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
                 blockListAllocated.put(idBlock, dimension);
+                System.out.println("----------------- allocation -----------------");
+                System.out.println(memory);
                 return true;
             }
         }
-
         // at the end of the memory, we check if the last block of memory correspond to the biggest or smallest.
         if (currentMemory.size() > biggestMemory.size() && memoryAvaible >= dimension) {
             biggestMemory = currentMemory;
@@ -123,7 +138,7 @@ public class MemoryImpl implements Memory {
         }
 
         // we verify the strategy and add the block to the memory if their is enough place
-        if (biggestMemory.size() > dimension && strategy == StrategyType.WORST_FIT) {
+        if (biggestMemory.size() >= dimension && strategy == StrategyType.WORST_FIT) {
                 // we set the memory to taken.
                 int count = 0;
                 for (int i: biggestMemory) {
@@ -134,9 +149,11 @@ public class MemoryImpl implements Memory {
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
                 blockListAllocated.put(idBlock, dimension);
+                System.out.println("----------------- allocation -----------------");
+                System.out.println(memory);
                 return true;
         }
-        if (smalestMemory.size() > dimension && strategy == StrategyType.BEST_FIT) {
+        if (smalestMemory.size() >= dimension && strategy == StrategyType.BEST_FIT) {
                 // we set the memory to taken.
                 int count = 0;
                 for (int i: smalestMemory) {
@@ -146,9 +163,12 @@ public class MemoryImpl implements Memory {
                     }
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
+                System.out.println("----------------- allocation -----------------");
+                System.out.println(memory);
                 blockListAllocated.put(idBlock, dimension);
                 return true;
         }
+        System.out.println("Unknow error");
         return false;
     }
 
@@ -161,6 +181,7 @@ public class MemoryImpl implements Memory {
 
         // if object is unassigned or is not in the assigned list, return exeption.
         if (((Hashtable<Integer, Integer>) blockListAllocated).containsKey(idBlock) == false) {
+            System.out.println("Error : the block is not assigned");
             return false;
         }
         
@@ -174,6 +195,8 @@ public class MemoryImpl implements Memory {
         }
         // remove from the list
         blockListAllocated.remove(idBlock);
+        System.out.println("----------------- Unallocation -----------------");
+        System.out.println(memory);
         return true;
     }
 
@@ -332,7 +355,7 @@ public class MemoryImpl implements Memory {
         } else if (memory.get(block.getHighAddress() + 1) == -1) {
             high = false;
         } else {
-            highBlockId = memory.get(block.getHighAddress() - 1);
+            highBlockId = memory.get(block.getHighAddress() + 1);
         }
 
         //we add them in the set.
@@ -373,9 +396,23 @@ public class MemoryImpl implements Memory {
                 currentBlock = 0;
             }
         }
+
+        if (currentBlock > biggest) {
+            biggest = currentBlock;
+            currentBlock = 0;
+        }
+        if (freeMemory == 0) {
+            return 0;
+        }
+
         int fragmentation = 1 - (biggest/freeMemory);
 
-        return fragmentation;
+        System.out.println("1 - " + biggest + " / " + freeMemory);
+        if (biggest == 0) {
+            return 0;
+        } else {
+            return fragmentation;
+        }
     }
 
     public int getBiggestMemoryAvaible() {
@@ -399,6 +436,7 @@ public class MemoryImpl implements Memory {
         }
         return biggest;
     }
+    
     @Override
     public Set<BlockInterval> freeSlots() {
         /* TODO
@@ -428,11 +466,12 @@ public class MemoryImpl implements Memory {
                 currentSlot = key;
             } else if (freeSlotStarted) {
                 BlockInterval interval = new BlockInterval(currentSlot, startingSlot);
+                System.out.println(memory);
+                System.out.println(currentSlot + " " + startingSlot);
                 freeslots.add(interval);
                 freeSlotStarted = false;
             }
         }
-
         return freeslots;
     }
 
