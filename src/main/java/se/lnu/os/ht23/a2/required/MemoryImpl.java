@@ -120,8 +120,6 @@ public class MemoryImpl implements Memory {
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
                 blockListAllocated.put(idBlock, dimension);
-                System.out.println("----------------- allocation -----------------");
-                System.out.println(memory);
                 return true;
             }
         }
@@ -149,8 +147,6 @@ public class MemoryImpl implements Memory {
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
                 blockListAllocated.put(idBlock, dimension);
-                System.out.println("----------------- allocation -----------------");
-                System.out.println(memory);
                 return true;
         }
         if (smalestMemory.size() >= dimension && strategy == StrategyType.BEST_FIT) {
@@ -163,8 +159,6 @@ public class MemoryImpl implements Memory {
                     }
                 }
                 // we add the block to the dictionay allocated and delete it from the unassigned block.
-                System.out.println("----------------- allocation -----------------");
-                System.out.println(memory);
                 blockListAllocated.put(idBlock, dimension);
                 return true;
         }
@@ -195,8 +189,6 @@ public class MemoryImpl implements Memory {
         }
         // remove from the list
         blockListAllocated.remove(idBlock);
-        System.out.println("----------------- Unallocation -----------------");
-        System.out.println(memory);
         return true;
     }
 
@@ -291,6 +283,22 @@ public class MemoryImpl implements Memory {
      * this funcrion compact the memory.
      */
     public void compact() {
+        ArrayList<Integer> test = new ArrayList<Integer>();
+        
+        // get the block id in reverse order
+        Enumeration<Integer> id2 = memory.keys();
+        while (id2.hasMoreElements()) {
+            int key = id2.nextElement();
+            if(test.contains(memory.get(key)) == false && memory.get(key).equals(-1) == false) {
+                test.add(memory.get(key));
+            }
+        }
+
+        // revert the array list.
+        ArrayList<Integer> revArrayList2 = new ArrayList<Integer>();
+        for (int i = test.size() - 1; i >= 0; i--) {
+            revArrayList2.add(test.get(i));
+        }
 
         // reset all the memory.
         Enumeration<Integer> id = memory.keys();
@@ -298,22 +306,9 @@ public class MemoryImpl implements Memory {
             int key = id.nextElement();
             memory.put(key, -1);
         }
-        
-        // reverse the blocklistallocated list.
-        Enumeration<Integer> epicid = blockListAllocated.keys();
-        List<Integer> list = new ArrayList<>();
-        while (epicid.hasMoreElements()) {
-            int key = epicid.nextElement();
-            list.add(key);
-        }
-        ArrayList<Integer> revArrayList = new ArrayList<Integer>();
-        for (int i = list.size() - 1; i >= 0; i--) {
-            // Append the elements in reverse order
-            revArrayList.add(list.get(i));
-        }
 
         // reasign each block to the reseted memory.
-        for (int key : revArrayList) {
+        for (int key : revArrayList2) {
             int dimmension = blockListAllocated.get(key);
             blockListAllocated.remove(key);
             AllocateBlock(key, dimmension, StrategyType.FIRST_FIT);
@@ -377,9 +372,9 @@ public class MemoryImpl implements Memory {
          */
 
         
-        int biggest = 0;
-        int currentBlock = 0;
-        int freeMemory = 0;
+        double biggest = 0;
+        double currentBlock = 0;
+        double freeMemory = 0;
         
         // simple calculation with the help of the formula given.
         // here we calculate the freememory and the biggest block of free memory.
@@ -405,9 +400,8 @@ public class MemoryImpl implements Memory {
             return 0;
         }
 
-        int fragmentation = 1 - (biggest/freeMemory);
 
-        System.out.println("1 - " + biggest + " / " + freeMemory);
+        double fragmentation = 1 - (biggest/freeMemory);
         if (biggest == 0) {
             return 0;
         } else {
@@ -439,6 +433,8 @@ public class MemoryImpl implements Memory {
     
     @Override
     public Set<BlockInterval> freeSlots() {
+
+        System.out.println("-- START FREESLOT COUNT --");
         /* TODO
             Replace this return statement with the method that returns the set of BlockInterval instances
             corresponding to the free slots of the memory. Return exactly one BlockInterval per slot, make sure
@@ -459,18 +455,29 @@ public class MemoryImpl implements Memory {
         while (id.hasMoreElements()) {
             int key = id.nextElement();
             if (memory.get(key) == -1 && freeSlotStarted == false) {
+                System.out.println("Start a new free block:");
+                System.out.println(key + "Is the first starting slot");
                 currentSlot = key;
                 startingSlot = key;
                 freeSlotStarted = true;
+                System.out.println(startingSlot);
             } else if (memory.get(key) == -1) {
                 currentSlot = key;
             } else if (freeSlotStarted) {
+                System.out.println("End of the free block interval");
+                System.out.println(currentSlot);
                 BlockInterval interval = new BlockInterval(currentSlot, startingSlot);
-                System.out.println(memory);
                 System.out.println(currentSlot + " " + startingSlot);
                 freeslots.add(interval);
                 freeSlotStarted = false;
             }
+        }
+        if (freeSlotStarted) {
+            System.out.println("End of the free block interval");
+            System.out.println(currentSlot);
+            BlockInterval interval = new BlockInterval(currentSlot, startingSlot);
+            freeslots.add(interval);
+            freeSlotStarted = false;
         }
         return freeslots;
     }
