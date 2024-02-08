@@ -346,6 +346,17 @@ class SimulationTests {
         assertEquals(1, sim.getMemory().getBlockInterval(10).getLowAddress());
     }
 
+    /* 
+    So this is the funny test for the assignment 2, they are devieded in 4 type :
+    Test 1 is a simple test with several instruction, NO EXEPTION should be thrown by the simulator. We basicaly check the fragmentation, freeslots, neighbor, block size, block highest and smallest addresses.
+    Test 2 is a more complexe where we work with different instruvtion that can have several exeption.
+    Test 3 is basicaly to check if the simulator throw exeption as expected.
+    Test 4 : well i don't kno< i didn't started it for now
+    Anyway, each test category are performed 3 times for each different strategy so that we verify the strategy works fine.
+    I'm pretty sur the test expected outcome are correct, if a test doesn't work, it's certainly YOUR code fault :) 
+    I didn't commented everything because i'm kinda lazy sorry))
+    */
+
 //1) Allocate ID 100, size 1000; 2) Allocate ID 1, size 500; 3) Deallocate ID 100; 4) Allocate ID 2, size 200; 5) Compact Memory;
 //6) Deallocate ID 2; 7) Allocate ID 3, size 500; 8) Deallocate ID 1; 9) Allocate ID 4, size 100; 10) Compact Memory;
     @Test
@@ -1458,5 +1469,46 @@ void test3worst_fit() {
     System.out.println(sim.getExceptions().get(0).getInstructionType().getName());
     }
 
+    /*Test 4. (18 Instructions) -> Memory size is 200.
 
+1) Allocate ID 100, size 60; 2) Allocate ID 1, size 40; 3) Allocate ID 2, size 30; 4) Allocate ID 3, size 30; 5) Allocate ID 4, size 60;
+
+6) Deallocate ID 100; 7) Deallocate ID 3; 8) Allocate ID 5, size 20; 9) Allocate ID 6, size 40; 10) Deallocate ID 4;
+
+11) Allocate ID 7, size 10; 12) Allocate ID 8, size 60; 13) Allocate ID 9, size 40; 14) Compact Memory; 15) Deallocate ID 8;
+
+16) Allocate ID 10, size 30; 17) Deallocate ID 6; 18) Deallocate ID 9; */
+    @Test
+void test4best_fit() {
+    Set<BlockInterval> testFreeSlots = new HashSet<>();
+    Set<Integer> neighborSet = new HashSet<>();
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(100,60),
+            new AllocationInstruction(1,40),
+            new AllocationInstruction(2, 30),
+            new AllocationInstruction(3, 30),
+            new AllocationInstruction(4, 60),
+            new DeallocationInstruction(100),
+            new DeallocationInstruction(3),
+            new AllocationInstruction(5, 20),
+            new AllocationInstruction(6, 40),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(7, 10),
+            new AllocationInstruction(8, 60),
+            new AllocationInstruction(9, 40),
+            new CompactInstruction(),
+            new DeallocationInstruction(8),
+            new AllocationInstruction(10, 30),
+            new DeallocationInstruction(6),
+            new DeallocationInstruction(9)
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(200),
+            StrategyType.BEST_FIT); 
+    sim.run(1);
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getLowAddress());
+
+    }
 }
