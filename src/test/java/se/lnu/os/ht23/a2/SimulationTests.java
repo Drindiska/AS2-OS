@@ -831,6 +831,7 @@ void test2best_fit() {
     sim.run(1);
     assertEquals(500, sim.getExceptions().get(0).getAllocatableMemoryAtException());
     assertEquals(1, sim.getExceptions().size());
+    assertEquals(0, sim.getMemory().blockDimension(100));
     sim.run(1);
     assertEquals(0, sim.getMemory().getBlockInterval(1).getLowAddress());
     assertEquals(199, sim.getMemory().getBlockInterval(1).getHighAddress());
@@ -1367,7 +1368,9 @@ void test3first_fit() {
             new MemoryImpl(50),
             StrategyType.FIRST_FIT); 
     
+    assertEquals(0, sim.getMemory().fragmentation());
     sim.runAll(); 
+    assertEquals(0, sim.getMemory().fragmentation());
     assertEquals(12, sim.getExceptions().size());
     assertEquals(50, sim.getExceptions().get(0).getAllocatableMemoryAtException());
     assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
@@ -1409,7 +1412,10 @@ void test3best_fit() {
             new MemoryImpl(50),
             StrategyType.BEST_FIT); 
     
+
+    assertEquals(0, sim.getMemory().fragmentation());
     sim.runAll(); 
+    assertEquals(0, sim.getMemory().fragmentation());
     assertEquals(12, sim.getExceptions().size());
     assertEquals(50, sim.getExceptions().get(0).getAllocatableMemoryAtException());
     assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
@@ -1451,7 +1457,9 @@ void test3worst_fit() {
             new MemoryImpl(50),
             StrategyType.WORST_FIT); 
     
-    sim.runAll(); 
+    assertEquals(0, sim.getMemory().fragmentation());
+    sim.runAll();
+    assertEquals(0, sim.getMemory().fragmentation());
     assertEquals(12, sim.getExceptions().size());
     assertEquals(50, sim.getExceptions().get(0).getAllocatableMemoryAtException());
     assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
@@ -1506,9 +1514,1200 @@ void test4best_fit() {
             instr,
             new MemoryImpl(200),
             StrategyType.BEST_FIT); 
-    sim.run(1);
-    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
-    assertEquals(59, sim.getMemory().getBlockInterval(100).getLowAddress());
+    sim.run(1); //first
 
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    testFreeSlots.add(new BlockInterval(60, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //second
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    testFreeSlots.add(new BlockInterval(100, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //third
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(100);
+    neighborSet.add(2);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fourth
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fith
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //six
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0.4, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //seven
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(false, sim.getMemory().containsBlock(3));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0.46153846153846156, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //eight
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.36363636363636365, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //neuf
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+
+    sim.run(1); //dix
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //onze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    testFreeSlots.add(new BlockInterval(140, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //douze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+    neighborSet.add(8);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //treize
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(7);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(8));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 14th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 15th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(false, sim.getMemory().containsBlock(8));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    testFreeSlots.add(new BlockInterval(140, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 16th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(10);
+    neighborSet.add(2);
+
+    assertEquals(false, sim.getMemory().containsBlock(8));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 17th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(false, sim.getMemory().containsBlock(6));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.4285714285714286, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 18th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(false, sim.getMemory().containsBlock(6));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.4285714285714286, sim.getMemory().fragmentation());
+    assertEquals(4, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+    assertEquals(40, sim.getExceptions().get(3).getAllocatableMemoryAtException());
     }
+
+/*Test 4. (18 Instructions) -> Memory size is 200.
+
+1) Allocate ID 100, size 60; 2) Allocate ID 1, size 40; 3) Allocate ID 2, size 30; 4) Allocate ID 3, size 30; 5) Allocate ID 4, size 60;
+
+6) Deallocate ID 100; 7) Deallocate ID 3; 8) Allocate ID 5, size 20; 9) Allocate ID 6, size 40; 10) Deallocate ID 4;
+
+11) Allocate ID 7, size 10; 12) Allocate ID 8, size 60; 13) Allocate ID 9, size 40; 14) Compact Memory; 15) Deallocate ID 8;
+
+16) Allocate ID 10, size 30; 17) Deallocate ID 6; 18) Deallocate ID 9; */
+@Test
+void test4first_fit() {
+    Set<BlockInterval> testFreeSlots = new HashSet<>();
+    Set<Integer> neighborSet = new HashSet<>();
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(100,60),
+            new AllocationInstruction(1,40),
+            new AllocationInstruction(2, 30),
+            new AllocationInstruction(3, 30),
+            new AllocationInstruction(4, 60),
+            new DeallocationInstruction(100),
+            new DeallocationInstruction(3),
+            new AllocationInstruction(5, 20),
+            new AllocationInstruction(6, 40),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(7, 10),
+            new AllocationInstruction(8, 60),
+            new AllocationInstruction(9, 40),
+            new CompactInstruction(),
+            new DeallocationInstruction(8),
+            new AllocationInstruction(10, 30),
+            new DeallocationInstruction(6),
+            new DeallocationInstruction(9)
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(200),
+            StrategyType.FIRST_FIT); 
+    sim.run(1); //first
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    testFreeSlots.add(new BlockInterval(60, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //second
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    testFreeSlots.add(new BlockInterval(100, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //third
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(100);
+    neighborSet.add(2);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fourth
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fith
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //six
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0.4, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //seven
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(false, sim.getMemory().containsBlock(3));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0.46153846153846156, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //eight
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.36363636363636365, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //neuf
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+
+    sim.run(1); //dix
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //onze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    testFreeSlots.add(new BlockInterval(140, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //douze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+    neighborSet.add(8);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //treize
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(7);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(8));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 14th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(8).getLowAddress());
+    assertEquals(199, sim.getMemory().getBlockInterval(8).getHighAddress());
+    assertEquals(60, sim.getMemory().blockDimension(8));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 15th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(false, sim.getMemory().containsBlock(8));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    testFreeSlots.add(new BlockInterval(140, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(6));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 16th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(10);
+    neighborSet.add(2);
+
+    assertEquals(false, sim.getMemory().containsBlock(8));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(20, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(7));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 17th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(false, sim.getMemory().containsBlock(6));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.4285714285714286, sim.getMemory().fragmentation());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+
+    sim.run(1); // 18th test and step
+    testFreeSlots.clear();
+    neighborSet.clear();
+
+    assertEquals(false, sim.getMemory().containsBlock(6));
+    assertEquals(0, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(19, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    assertEquals(130, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(139, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(10, sim.getMemory().blockDimension(7));
+    assertEquals(140, sim.getMemory().getBlockInterval(10).getLowAddress());
+    assertEquals(169, sim.getMemory().getBlockInterval(10).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(10));
+    testFreeSlots.add(new BlockInterval(20, 59));
+    testFreeSlots.add(new BlockInterval(170, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.4285714285714286, sim.getMemory().fragmentation());
+    assertEquals(4, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(70, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(0, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+    assertEquals(40, sim.getExceptions().get(3).getAllocatableMemoryAtException());
+    }
+
+
+/*Test 4. (18 Instructions) -> Memory size is 200.
+
+1) Allocate ID 100, size 60; 2) Allocate ID 1, size 40; 3) Allocate ID 2, size 30; 4) Allocate ID 3, size 30; 5) Allocate ID 4, size 60;
+
+6) Deallocate ID 100; 7) Deallocate ID 3; 8) Allocate ID 5, size 20; 9) Allocate ID 6, size 40; 10) Deallocate ID 4;
+
+11) Allocate ID 7, size 10; 12) Allocate ID 8, size 60; 13) Allocate ID 9, size 40; 14) Compact Memory; 15) Deallocate ID 8;
+
+16) Allocate ID 10, size 30; 17) Deallocate ID 6; 18) Deallocate ID 9; */
+@Test
+void test4worst_fit() {
+    Set<BlockInterval> testFreeSlots = new HashSet<>();
+    Set<Integer> neighborSet = new HashSet<>();
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(100,60),
+            new AllocationInstruction(1,40),
+            new AllocationInstruction(2, 30),
+            new AllocationInstruction(3, 30),
+            new AllocationInstruction(4, 60),
+            new DeallocationInstruction(100),
+            new DeallocationInstruction(3),
+            new AllocationInstruction(5, 20),
+            new AllocationInstruction(6, 40),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(7, 10),
+            new AllocationInstruction(8, 60),
+            new AllocationInstruction(9, 40),
+            new CompactInstruction(),
+            new DeallocationInstruction(8),
+            new AllocationInstruction(10, 30),
+            new DeallocationInstruction(6),
+            new DeallocationInstruction(9)
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(200),
+            StrategyType.WORST_FIT); 
+    sim.run(1); //first
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    testFreeSlots.add(new BlockInterval(60, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //second
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    testFreeSlots.add(new BlockInterval(100, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //third
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(100);
+    neighborSet.add(2);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fourth
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(0, sim.getExceptions().size());
+
+    sim.run(1); //fith
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
+    assertEquals(59, sim.getMemory().getBlockInterval(100).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //six
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(1);
+    neighborSet.add(3);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(130, sim.getMemory().getBlockInterval(3).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(3).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(160, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0.4, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //seven
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(false, sim.getMemory().containsBlock(100));
+    assertEquals(false, sim.getMemory().containsBlock(3));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(130, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(0.46153846153846156, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //eight
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+
+    assertEquals(130, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(149, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    testFreeSlots.add(new BlockInterval(0, 59));
+    testFreeSlots.add(new BlockInterval(150, 199));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(5));
+    assertEquals(0.4545454545454546, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+
+    sim.run(1); //neuf
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(130, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(149, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(0, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(39, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(150, 199));
+    testFreeSlots.add(new BlockInterval(40, 59));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0.2857142857142857, sim.getMemory().fragmentation());
+    assertEquals(1, sim.getExceptions().size());
+
+    sim.run(1); //dix
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(5);
+    neighborSet.add(1);
+
+    assertEquals(130, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(149, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(0, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(39, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(30, sim.getMemory().blockDimension(2));
+    testFreeSlots.add(new BlockInterval(150, 199));
+    testFreeSlots.add(new BlockInterval(40, 59));
+    assertEquals(testFreeSlots, sim.getMemory().freeSlots());
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    assertEquals(0.2857142857142857, sim.getMemory().fragmentation());
+    assertEquals(2, sim.getExceptions().size());
+    assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+
+    sim.run(1); //onze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+
+    assertEquals(130, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(149, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(0, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(39, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(150, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(2, sim.getExceptions().size());
+
+    sim.run(1); //douze
+    testFreeSlots.clear();
+    neighborSet.clear();
+    neighborSet.add(2);
+    neighborSet.add(8);
+
+    assertEquals(130, sim.getMemory().getBlockInterval(5).getLowAddress());
+    assertEquals(149, sim.getMemory().getBlockInterval(5).getHighAddress());
+    assertEquals(20, sim.getMemory().blockDimension(5));
+    assertEquals(0, sim.getMemory().getBlockInterval(6).getLowAddress());
+    assertEquals(39, sim.getMemory().getBlockInterval(6).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(6));
+    assertEquals(60, sim.getMemory().getBlockInterval(1).getLowAddress());
+    assertEquals(99, sim.getMemory().getBlockInterval(1).getHighAddress());
+    assertEquals(40, sim.getMemory().blockDimension(1));
+    assertEquals(100, sim.getMemory().getBlockInterval(2).getLowAddress());
+    assertEquals(129, sim.getMemory().getBlockInterval(2).getHighAddress());
+    assertEquals(150, sim.getMemory().getBlockInterval(7).getLowAddress());
+    assertEquals(159, sim.getMemory().getBlockInterval(7).getHighAddress());
+    assertEquals(3, sim.getExceptions().size());
+    assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
+    assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
+    assertEquals(40, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+}
 }
