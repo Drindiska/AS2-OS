@@ -364,16 +364,16 @@ class SimulationTests {
         Set<BlockInterval> testFreeSlots = new HashSet<>();
         Set<Integer> neighborSet = new HashSet<>();
         Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
-                new AllocationInstruction(100,1000),
-                new AllocationInstruction(1,500),
-                new DeallocationInstruction(100),
-                new AllocationInstruction(2, 200),
-                new CompactInstruction(),
-                new DeallocationInstruction(2),
-                new AllocationInstruction(3, 500),
-                new DeallocationInstruction(1),
-                new AllocationInstruction(4, 100),
-                new CompactInstruction()
+                new AllocationInstruction(100,1000), //one
+                new AllocationInstruction(1,500), //two
+                new DeallocationInstruction(100), //three
+                new AllocationInstruction(2, 200), //four
+                new CompactInstruction(), //five
+                new DeallocationInstruction(2), //six
+                new AllocationInstruction(3, 500), //seven
+                new DeallocationInstruction(1), //eight
+                new AllocationInstruction(4, 100), //nine
+                new CompactInstruction() //ten
         ));
         SimulationInstance sim = new SimulationInstanceImpl(
                 instr,
@@ -382,10 +382,12 @@ class SimulationTests {
         // First test after 1 instruction
         sim.run(1);
 
+
         // Check intervals, Dimention
         assertEquals(999, sim.getMemory().getBlockInterval(100).getHighAddress());
         assertEquals(0, sim.getMemory().getBlockInterval(100).getLowAddress());
         assertEquals(1000, sim.getMemory().blockDimension(100));
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
 
         // Check fragmentation
         assertEquals(0 , sim.getMemory().fragmentation());
@@ -395,7 +397,7 @@ class SimulationTests {
         // check free slots
         assertEquals(testFreeSlots, sim.getMemory().freeSlots());
 
-        sim.run(1);
+        sim.run(1); //two
         testFreeSlots.clear();
 
         testFreeSlots.add(new BlockInterval(1500, 1999));
@@ -410,7 +412,7 @@ class SimulationTests {
         assertEquals(1499, sim.getMemory().getBlockInterval(1).getHighAddress());
         assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
 
-        sim.run(1);
+        sim.run(1); //three
         neighborSet.clear();
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
         
@@ -424,12 +426,28 @@ class SimulationTests {
         assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(500, sim.getMemory().blockDimension(1));
 
-        sim.run(1);
+        sim.run(1); //four
+
+        neighborSet.add(2);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
+        neighborSet.clear();
+        neighborSet.add(1);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
 
         assertEquals(1500, sim.getMemory().getBlockInterval(2).getLowAddress());
         assertEquals(1699, sim.getMemory().getBlockInterval(2).getHighAddress());
 
-        sim.run(1);
+        sim.run(1); //five
+
+        neighborSet.clear();
+
+        neighborSet.add(2);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
+        neighborSet.clear();
+        neighborSet.add(1);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
 
         assertEquals(499, sim.getMemory().getBlockInterval(1).getHighAddress());
         assertEquals(0, sim.getMemory().getBlockInterval(1).getLowAddress());
@@ -440,12 +458,20 @@ class SimulationTests {
         testFreeSlots.clear();
         testFreeSlots.add(new BlockInterval(700, 1999));
 
-        sim.run(1);
+        sim.run(1); //six
+
+        neighborSet.clear();
+
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
 
         assertEquals(0, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(499, sim.getMemory().getBlockInterval(1).getHighAddress());
         
-        sim.run(1);
+        sim.run(1); //seven
+
+        neighborSet.clear();
+        neighborSet.add(3);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
 
         assertEquals(0, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(499, sim.getMemory().getBlockInterval(1).getHighAddress());
@@ -460,7 +486,8 @@ class SimulationTests {
         neighborSet.clear();
         neighborSet.add(1);
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
-        sim.run(1);
+
+        sim.run(1); //eight
 
         assertEquals(500, sim.getMemory().getBlockInterval(3).getLowAddress());
         assertEquals(999, sim.getMemory().getBlockInterval(3).getHighAddress());
@@ -470,7 +497,7 @@ class SimulationTests {
         assertEquals(testFreeSlots, sim.getMemory().freeSlots());
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
 
-        sim.run(1);
+        sim.run(1); //nein
         
         assertEquals(0, sim.getMemory().getBlockInterval(4).getLowAddress());
         assertEquals(99, sim.getMemory().getBlockInterval(4).getHighAddress());
@@ -484,7 +511,7 @@ class SimulationTests {
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(4));
         assertEquals(0.2857142857142857, sim.getMemory().fragmentation());
 
-        sim.run(1);
+        sim.run(1); //ten
         
         assertEquals(0, sim.getMemory().getBlockInterval(4).getLowAddress());
         assertEquals(99, sim.getMemory().getBlockInterval(4).getHighAddress());
@@ -524,7 +551,7 @@ class SimulationTests {
                 new MemoryImpl(2000),
                 StrategyType.WORST_FIT);
         // First test after 1 instruction
-        sim.run(1);
+        sim.run(1); //one
 
         // Check intervals, Dimention
         assertEquals(999, sim.getMemory().getBlockInterval(100).getHighAddress());
@@ -539,7 +566,10 @@ class SimulationTests {
         // check free slots
         assertEquals(testFreeSlots, sim.getMemory().freeSlots());
 
-        sim.run(1);
+        neighborSet.clear();
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+
+        sim.run(1); //two
         testFreeSlots.clear();
 
         testFreeSlots.add(new BlockInterval(1500, 1999));
@@ -554,7 +584,7 @@ class SimulationTests {
         assertEquals(1499, sim.getMemory().getBlockInterval(1).getHighAddress());
         assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
 
-        sim.run(1);
+        sim.run(1); //three
         neighborSet.clear();
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
         
@@ -568,12 +598,15 @@ class SimulationTests {
         assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(500, sim.getMemory().blockDimension(1));
 
-        sim.run(1);
+        sim.run(1); //four
+
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
 
         assertEquals(0, sim.getMemory().getBlockInterval(2).getLowAddress());
         assertEquals(199, sim.getMemory().getBlockInterval(2).getHighAddress());
 
-        sim.run(1);
+        sim.run(1); //five
 
         assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
         assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
@@ -584,12 +617,21 @@ class SimulationTests {
         testFreeSlots.clear();
         testFreeSlots.add(new BlockInterval(700, 1999));
 
-        sim.run(1);
+        neighborSet.add(2);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+        neighborSet.clear();
+        neighborSet.add(1);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+
+        sim.run(1); //six
 
         assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
         
-        sim.run(1);
+        neighborSet.clear();
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
+        sim.run(1); //seven
 
         assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
         assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
@@ -605,7 +647,11 @@ class SimulationTests {
         neighborSet.add(1);
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
 
-        sim.run(1);
+        neighborSet.clear();
+        neighborSet.add(3);
+        assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
+        sim.run(1); //eight
 
         assertEquals(700, sim.getMemory().getBlockInterval(3).getLowAddress());
         assertEquals(1199, sim.getMemory().getBlockInterval(3).getHighAddress());
@@ -615,7 +661,7 @@ class SimulationTests {
         assertEquals(testFreeSlots, sim.getMemory().freeSlots());
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
 
-        sim.run(1);
+        sim.run(1); //nein
         
         assertEquals(1200, sim.getMemory().getBlockInterval(4).getLowAddress());
         assertEquals(1299, sim.getMemory().getBlockInterval(4).getHighAddress());
@@ -632,7 +678,7 @@ class SimulationTests {
         assertEquals(neighborSet, sim.getMemory().neighboringBlocks(4));
         assertEquals(0.5, sim.getMemory().fragmentation());
 
-        sim.run(1);
+        sim.run(1); //ten
         
         assertEquals(500, sim.getMemory().getBlockInterval(4).getLowAddress());
         assertEquals(599, sim.getMemory().getBlockInterval(4).getHighAddress());
@@ -672,7 +718,7 @@ void test1First_Fit() {
             new MemoryImpl(2000),
             StrategyType.FIRST_FIT);
     // First test after 1 instruction
-    sim.run(1);
+    sim.run(1); //one
 
     // Check intervals, Dimention
     assertEquals(999, sim.getMemory().getBlockInterval(100).getHighAddress());
@@ -687,7 +733,11 @@ void test1First_Fit() {
     // check free slots
     assertEquals(testFreeSlots, sim.getMemory().freeSlots());
 
-    sim.run(1);
+    neighborSet.clear();
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(100));
+
+    sim.run(1); //two
+
     testFreeSlots.clear();
 
     testFreeSlots.add(new BlockInterval(1500, 1999));
@@ -702,7 +752,7 @@ void test1First_Fit() {
     assertEquals(1499, sim.getMemory().getBlockInterval(1).getHighAddress());
     assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
 
-    sim.run(1);
+    sim.run(1); //three
     neighborSet.clear();
     assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
     
@@ -716,12 +766,16 @@ void test1First_Fit() {
     assertEquals(1000, sim.getMemory().getBlockInterval(1).getLowAddress());
     assertEquals(500, sim.getMemory().blockDimension(1));
 
-    sim.run(1);
+    sim.run(1); //four
+
+    
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
 
     assertEquals(0, sim.getMemory().getBlockInterval(2).getLowAddress());
     assertEquals(199, sim.getMemory().getBlockInterval(2).getHighAddress());
 
-    sim.run(1);
+    sim.run(1); //five
 
     assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
     assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
@@ -733,12 +787,22 @@ void test1First_Fit() {
     testFreeSlots.add(new BlockInterval(700, 1999));
     assertEquals(testFreeSlots, sim.getMemory().freeSlots());
 
-    sim.run(1);
+    neighborSet.add(1);
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(2));
+    neighborSet.clear();
+    neighborSet.add(2);
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
+    sim.run(1); //six
+
+    neighborSet.clear();
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
 
     assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
     assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
     
-    sim.run(1);
+    sim.run(1); //seven
+
 
     assertEquals(200, sim.getMemory().getBlockInterval(1).getLowAddress());
     assertEquals(699, sim.getMemory().getBlockInterval(1).getHighAddress());
@@ -749,13 +813,19 @@ void test1First_Fit() {
     testFreeSlots.add(new BlockInterval(1200, 1999));
     testFreeSlots.add(new BlockInterval(0, 199));
 
+    neighborSet.add(1);
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
+    neighborSet.clear();
+    neighborSet.add(3);
+    assertEquals(neighborSet, sim.getMemory().neighboringBlocks(1));
+
     assertEquals(0.19999999999999996, sim.getMemory().fragmentation());
 
     neighborSet.clear();
     neighborSet.add(1);
     assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
 
-    sim.run(1);
+    sim.run(1); //eight
 
     assertEquals(700, sim.getMemory().getBlockInterval(3).getLowAddress());
     assertEquals(1199, sim.getMemory().getBlockInterval(3).getHighAddress());
@@ -767,7 +837,7 @@ void test1First_Fit() {
     assertEquals(testFreeSlots, sim.getMemory().freeSlots());
     assertEquals(neighborSet, sim.getMemory().neighboringBlocks(3));
 
-    sim.run(1);
+    sim.run(1); //nein
     
     assertEquals(700, sim.getMemory().getBlockInterval(3).getLowAddress());
     assertEquals(1199, sim.getMemory().getBlockInterval(3).getHighAddress());
@@ -781,7 +851,7 @@ void test1First_Fit() {
     assertEquals(neighborSet, sim.getMemory().neighboringBlocks(4));
     assertEquals(0.4285714285714286, sim.getMemory().fragmentation());
 
-    sim.run(1);
+    sim.run(1); //ten
     
     assertEquals(0, sim.getMemory().getBlockInterval(4).getLowAddress());
     assertEquals(99, sim.getMemory().getBlockInterval(4).getHighAddress());
@@ -1368,6 +1438,7 @@ void test3first_fit() {
             new MemoryImpl(50),
             StrategyType.FIRST_FIT); 
     
+    assertEquals(0, sim.getExceptions().size());
     assertEquals(0, sim.getMemory().fragmentation());
     sim.runAll(); 
     assertEquals(0, sim.getMemory().fragmentation());
