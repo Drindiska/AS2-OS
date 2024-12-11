@@ -303,6 +303,8 @@ class SimulationTests {
 
     }
 
+    
+
     @Test
     void ProcessIntervalTest() {
         Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
@@ -2836,6 +2838,85 @@ void test4worst_fit() {
     assertEquals(40, sim.getExceptions().get(0).getAllocatableMemoryAtException());
     assertEquals(50, sim.getExceptions().get(1).getAllocatableMemoryAtException());
     assertEquals(40, sim.getExceptions().get(2).getAllocatableMemoryAtException());
+}
+
+//-----------------------------------------------------------------------
+// NEW TEST 
+
+
+@Test
+void equalityTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2)
+
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.WORST_FIT);
+
+    Queue<Instruction> instr2 = new ArrayDeque<>(Arrays.asList(
+        new AllocationInstruction(1,5),
+        new AllocationInstruction(2,3),
+        new AllocationInstruction(3,8),
+        new AllocationInstruction(4,4),
+        new AllocationInstruction(5,2),
+        new DeallocationInstruction(2),
+        new DeallocationInstruction(4),
+        new AllocationInstruction(2,2)
+    ));
+    SimulationInstance sim2 = new SimulationInstanceImpl(
+            instr2,
+            new MemoryImpl(25),
+            StrategyType.WORST_FIT);    
+    sim.runAll();
+    sim.getMemory().fragmentation();
+    sim2.runAll();
+    sim2.getMemory().fragmentation();
+    assertTrue(sim.getMemory().equals(sim2.getMemory()));
+}
+
+@Test
+void customTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2),
+            new CompactInstruction(),
+            new AllocationInstruction(2,5),
+            new AllocationInstruction(6,10),
+            new DeallocationInstruction(6)//,
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.BEST_FIT);
+
+    int step = 0; 
+    double fragmentation = 0;
+    for (Instruction instruction : instr) {
+            sim.run(1);
+            step++;
+            if (step == 7 || step == 11)   
+            {
+                    fragmentation = sim.getMemory().fragmentation();
+            }
+    }
+    Set<Integer> a = sim.getMemory().neighboringProcesses(3);
+    sim.getMemory().fragmentation();
 }
 }
 

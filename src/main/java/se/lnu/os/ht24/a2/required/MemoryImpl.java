@@ -323,6 +323,8 @@ public class MemoryImpl implements Memory {
               memory and max. 2 if the block is surrounded both left and right by other blocks). For no neighboring
             blocks, return an empty Set.
          */
+
+        System.out.println("starting the methode Neighboring proccess for :" + blockId);
         Set<Integer> neighbor = new HashSet<>(); 
         
         //uses boolean to check if the lower and higher have been found.
@@ -331,8 +333,11 @@ public class MemoryImpl implements Memory {
         int lowBlockId = 0;
         int highBlockId = 0;
 
+        System.out.println("Initalization of all the basic parameters needed:");
+
         // check if the lower exist
         ProcessInterval block = getProcessInterval(blockId);
+
         if (block.getLowAddress() == 0) {
             lower = false;
         }
@@ -343,6 +348,8 @@ public class MemoryImpl implements Memory {
         } else {
             lowBlockId = memory.get(block.getLowAddress() - 1);
         }
+
+        System.out.println("lower exist : first step passed");
 
         // same for the higher.
         if (block.getHighAddress() == size - 1) {
@@ -493,26 +500,29 @@ public class MemoryImpl implements Memory {
         // we assume the object given is from the interface memory
         Memory comparedMemory = (Memory) o;
 
-        // simple test to compare the sets, and data of each block.
-        if ((comparedMemory.processes() == this.processes()) == false) {
-            return false;
-        }
-        if ((comparedMemory.freeSlots() == this.freeSlots()) == false) {
-            return false;
-        }
-        Enumeration<Integer> id = memory.keys();
-        while (id.hasMoreElements()) {
-            int key = id.nextElement();
+        System.out.println("Starting the verification");
+        System.out.println("Verification between our memory:" + this.processes());
+        System.out.println("and the outsider memory :" + comparedMemory.processes());
+
+
+        System.out.println("Verification of each block:");
+        
+        for (int key : this.processes()) {
+            System.out.println("Verification of the block with " + key);
             if (comparedMemory.containsProcess(key) == false) {
+                System.out.println("------- CASE 3");
                 return false;
             }
-            if ((comparedMemory.getProcessInterval(key) == this.getProcessInterval(key)) == false) {
+            if (comparedMemory.getProcessInterval(key).getHighAddress() != this.getProcessInterval(key).getHighAddress()) {
+                System.out.println("------- CASE 4");
                 return false;
             }
-            if ((comparedMemory.processSize(key) == this.processSize(key)) == false) {
+            if (comparedMemory.getProcessInterval(key).getLowAddress() != this.getProcessInterval(key).getLowAddress()) {
+                System.out.println("------- CASE 4");
                 return false;
             }
-            if ((comparedMemory.neighboringProcesses(key) == this.neighboringProcesses(key)) == false) {
+            if (comparedMemory.processSize(key) != this.processSize(key)) {
+                System.out.println("------- CASE 5");
                 return false;
             }
         }
