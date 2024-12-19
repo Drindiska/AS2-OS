@@ -49,6 +49,7 @@ public class SimulationInstanceImpl implements SimulationInstance {
             }
             if (success == false) {
                 instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+                System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
             }
             
         }
@@ -78,6 +79,7 @@ public class SimulationInstanceImpl implements SimulationInstance {
                 }
                 if (success == false) {
                     instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+                    System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
                 }
                 steps = steps - 1;
             }

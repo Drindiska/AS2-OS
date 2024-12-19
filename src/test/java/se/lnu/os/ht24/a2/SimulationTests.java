@@ -2924,6 +2924,7 @@ void customTest() {
  * --------------------------------------------------------------------------
  * ----------------------------2024 TEST-------------------------------------
  * The following tests are builded to test the flaws from the last feedback of the 2023 retake 
+ * --------------------------------------------------------------------------
  */
 
     @Test
@@ -3164,7 +3165,67 @@ void AllocationTest() {
 
     int step = 0; 
 }
+/**
+     * Stress test to validate behavior under heavy allocation and deallocation.
+     * Allocates and deallocates blocks of varying sizes in a large memory space.
+     * Verifies memory consistency and fragmentation after multiple operations.
+     */
+    @Test
+    void stressTestHeavyUsage() {
+        Queue<Instruction> instructions = new ArrayDeque<>();
+        for (int i = 1; i <= 25; i++) {
+            instructions.add(new AllocationInstruction(i, i * 2));
+        }
+        for (int i = 1; i <= 25; i++) {
+            instructions.add(new DeallocationInstruction(i));
+        }
+        for (int i = 51; i <= 75; i++) {
+            instructions.add(new AllocationInstruction(i, (i - 50) * 3));
+        }
 
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(1000),
+            StrategyType.FIRST_FIT
+        );
+
+        sim.runAll();
+
+        assertTrue(sim.getMemory().containsProcess(75));
+        ProcessInterval test = new ProcessInterval(975, 999);
+        assertTrue(sim.getMemory().freeSlots().contains(test));
+        assertTrue(sim.getMemory().fragmentation() < 0.1); // Ensure low fragmentation
+    }
+
+    /**
+     * Stress test to validate compaction with interleaved allocations and deallocations.
+     * Ensures that compaction correctly consolidates memory and preserves block order.
+     */
+    @Test
+    void stressTestCompaction() {
+        Queue<Instruction> instructions = new ArrayDeque<>();
+        for (int i = 1; i <= 20; i++) {
+            instructions.add(new AllocationInstruction(i, 10));
+            if (i % 2 == 0) {
+                instructions.add(new DeallocationInstruction(i));
+            }
+        }
+        instructions.add(new CompactInstruction());
+        for (int i = 21; i <= 30; i++) {
+            instructions.add(new AllocationInstruction(i, 15));
+        }
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(500),
+            StrategyType.BEST_FIT
+        );
+
+        sim.runAll();
+
+        assertEquals(0, sim.getExceptions().size());
+        assertTrue(sim.getMemory().fragmentation() < 0.05); // Minimal fragmentation
+    }
 
 }
 

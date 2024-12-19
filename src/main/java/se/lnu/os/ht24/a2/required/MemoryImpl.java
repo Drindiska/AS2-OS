@@ -162,7 +162,6 @@ public class MemoryImpl implements Memory {
                 blockListAllocated.put(idBlock, dimension);
                 return true;
         }
-        System.out.println("Unknow error");
         return false;
     }
 
