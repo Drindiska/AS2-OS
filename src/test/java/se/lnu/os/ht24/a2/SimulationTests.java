@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import se.lnu.os.ht24.a2.provided.abstract_.Instruction;
 import se.lnu.os.ht24.a2.provided.data.ProcessInterval;
 import se.lnu.os.ht24.a2.provided.data.StrategyType;
+import se.lnu.os.ht24.a2.provided.exceptions.InstructionException;
 import se.lnu.os.ht24.a2.provided.instructions.AllocationInstruction;
 import se.lnu.os.ht24.a2.provided.instructions.CompactInstruction;
 import se.lnu.os.ht24.a2.provided.instructions.DeallocationInstruction;
@@ -2918,5 +2919,252 @@ void customTest() {
     Set<Integer> a = sim.getMemory().neighboringProcesses(3);
     sim.getMemory().fragmentation();
 }
+
+/*
+ * --------------------------------------------------------------------------
+ * ----------------------------2024 TEST-------------------------------------
+ * The following tests are builded to test the flaws from the last feedback of the 2023 retake 
+ */
+
+    @Test
+    void testMultipleEqualSizedBlocks() {
+        Queue<Instruction> instructions = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1, 10),
+            new AllocationInstruction(2, 10),
+            new DeallocationInstruction(1),
+            new DeallocationInstruction(2),
+            new AllocationInstruction(3, 10) // Should pick the block freed by process 1 if using FIRST_FIT or BEST_FIT
+        ));
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(50),
+            StrategyType.BEST_FIT // Change to FIRST_FIT or WORST_FIT to test different strategies
+        );
+
+        sim.runAll();
+
+        ProcessInterval interval = sim.getMemory().getProcessInterval(3);
+        assertNotNull(interval);
+        assertEquals(0, interval.getLowAddress()); // BEST_FIT and FIRST_FIT should pick the first block
+    }
+
+    @Test
+    void testSequentialAllocationFailures() {
+        Queue<Instruction> instructions = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1, 20),
+            new AllocationInstruction(2, 30),
+            new AllocationInstruction(3, 50),
+            new AllocationInstruction(4, 10), // Should fail, not enough memory
+            new DeallocationInstruction(2),
+            new AllocationInstruction(5, 25) // Should succeed, fits in the freed block of process 2
+        ));
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(100),
+            StrategyType.FIRST_FIT
+        );
+
+        sim.runAll();
+
+        assertTrue(sim.getMemory().containsProcess(5));
+        assertFalse(sim.getMemory().containsProcess(4)); // Process 4 failed
+
+        List<InstructionException> exceptions = sim.getExceptions();
+        assertEquals(1, exceptions.size());
+        assertEquals(0, exceptions.get(0).getAllocatableMemoryAtException());
+    }
+
+    @Test
+    void testComplexFragmentationLayout() {
+        Queue<Instruction> instructions = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1, 10),
+            new AllocationInstruction(2, 20),
+            new AllocationInstruction(3, 15),
+            new DeallocationInstruction(2),
+            new AllocationInstruction(4, 10), // Fits into the space freed by process 2
+            new AllocationInstruction(5, 15), // Should fail, fragmented space too small
+            new CompactInstruction(),
+            new AllocationInstruction(6, 15) // Should succeed after compaction
+        ));
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(50),
+            StrategyType.WORST_FIT
+        );
+
+        sim.runAll();
+
+        assertTrue(sim.getMemory().containsProcess(4));
+        assertTrue(sim.getMemory().containsProcess(6));
+        assertFalse(sim.getMemory().containsProcess(5));
+        assertEquals(1, sim.getExceptions().size()); // 1 fail
+
+        double fragmentation = sim.getMemory().fragmentation();
+        assertEquals(0.0, fragmentation); // No fragmentation after compaction
+    }
+
+    @Test
+    void testFreeSlotsCalculation() {
+        Queue<Instruction> instructions = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1, 10),
+            new AllocationInstruction(2, 20),
+            new AllocationInstruction(3, 15),
+            new DeallocationInstruction(1),
+            new DeallocationInstruction(3)
+        ));
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(45),
+            StrategyType.FIRST_FIT
+        );
+
+        sim.runAll();
+
+        Set<ProcessInterval> freeSlots = sim.getMemory().freeSlots();
+        assertEquals(2, freeSlots.size()); // Two free slots should exist
+
+        boolean hasCorrectIntervals = freeSlots.stream().anyMatch(interval ->
+            interval.getLowAddress() == 0 && interval.getHighAddress() == 9
+        ) && freeSlots.stream().anyMatch(interval ->
+        interval.getLowAddress() == 30 && interval.getHighAddress() == 44
+        );
+        assertTrue(hasCorrectIntervals); // Check if free slots are identified correctly
+    }
+
+    @Test
+    void testCompactPreservesOrder() {
+        Queue<Instruction> instructions = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1, 10),
+            new AllocationInstruction(2, 20),
+            new DeallocationInstruction(1),
+            new AllocationInstruction(3, 15),
+            new CompactInstruction()
+        ));
+
+        SimulationInstance sim = new SimulationInstanceImpl(
+            instructions,
+            new MemoryImpl(100),
+            StrategyType.BEST_FIT
+        );
+
+        sim.runAll();
+
+        ProcessInterval interval1 = sim.getMemory().getProcessInterval(2);
+        ProcessInterval interval2 = sim.getMemory().getProcessInterval(3);
+
+        assertNotNull(interval1);
+        assertNotNull(interval2);
+
+        assertEquals(0, interval1.getLowAddress()); // Process 2 should move to the beginning
+        assertEquals(20, interval2.getLowAddress()); // Process 3 should follow directly after
+    }
+
+
+@Test
+void FragmentationTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2),
+            new CompactInstruction(),
+            new AllocationInstruction(2,5),
+            new AllocationInstruction(6,10),
+            new DeallocationInstruction(6)//,
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.BEST_FIT);
+}
+
+
+@Test
+void IntervalTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2),
+            new CompactInstruction(),
+            new AllocationInstruction(2,5),
+            new AllocationInstruction(6,10),
+            new DeallocationInstruction(6)//,
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.BEST_FIT);
+
+    int step = 0; 
+}
+
+
+@Test
+void ExceptionTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2),
+            new CompactInstruction(),
+            new AllocationInstruction(2,5),
+            new AllocationInstruction(6,10),
+            new DeallocationInstruction(6)//,
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.BEST_FIT);
+
+    int step = 0; 
+}
+
+
+@Test
+void AllocationTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(2,3),
+            new AllocationInstruction(3,8),
+            new AllocationInstruction(4,4),
+            new AllocationInstruction(5,2),
+            new DeallocationInstruction(2),
+            new DeallocationInstruction(4),
+            new AllocationInstruction(2,2),
+            new CompactInstruction(),
+            new AllocationInstruction(2,5),
+            new AllocationInstruction(6,10),
+            new DeallocationInstruction(6)//,
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.BEST_FIT);
+
+    int step = 0; 
+}
+
+
 }
 
