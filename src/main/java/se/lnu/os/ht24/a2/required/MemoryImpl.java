@@ -575,6 +575,7 @@ public class MemoryImpl implements Memory {
             emptyID = emptyID - 1;
             if (this.containsProcess(emptyID) == false) {
                 success = true;
+                System.out.println("NEW ID FOR EMPTY SLOT: " + emptyID);
             }
         }
         Enumeration<Integer> id = memory.keys();

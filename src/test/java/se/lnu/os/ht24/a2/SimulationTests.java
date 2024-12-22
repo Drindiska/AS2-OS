@@ -3325,5 +3325,56 @@ void NegativeIDWorstfitTest() {
    ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
    assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(-5));
 }
+
+    
+@Test
+void NegativeIDTestSwitch() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+        new AllocationInstruction(-1,5),
+        new AllocationInstruction(-2,5),
+        new AllocationInstruction(3,5),
+        new AllocationInstruction(-4,5),
+        new DeallocationInstruction(-1),
+        new DeallocationInstruction(3),
+        new AllocationInstruction(-3,5)
+        //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(20),
+            StrategyType.BEST_FIT);
+
+    sim.runAll();
+    assertFalse(sim.getMemory().containsProcess(-1));
+    assertTrue(sim.getMemory().containsProcess(-2));
+    assertFalse(sim.getMemory().containsProcess(3));
+    assertTrue(sim.getMemory().containsProcess(-4));
+    assertTrue(sim.getMemory().containsProcess(-3));
+
+    ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
+    assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(-3));
+
+    assertFalse(sim.getMemory().containsProcess(3));
+
+}
+
+@Test
+void NegativeIDstressTestCompaction() {
+    Queue<Instruction> instructions = new ArrayDeque<>();
+    for (int i = -500; i < 0; i++) {
+        instructions.add(new AllocationInstruction(i, 1));
+    }
+    instructions.add(new CompactInstruction());
+
+    SimulationInstance sim = new SimulationInstanceImpl(
+        instructions,
+        new MemoryImpl(500),
+        StrategyType.BEST_FIT
+    );
+
+    sim.runAll();
+    assertTrue(sim.getMemory().fragmentation() < 0.05); // Minimal fragmentation
+}
+
 }
 
