@@ -3149,31 +3149,6 @@ void ExceptionTest() {
     int step = 0; 
 }
 
-
-@Test
-void AllocationTest() {
-    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
-            new AllocationInstruction(1,5),
-            new AllocationInstruction(2,3),
-            new AllocationInstruction(3,8),
-            new AllocationInstruction(4,4),
-            new AllocationInstruction(5,2),
-            new DeallocationInstruction(2),
-            new DeallocationInstruction(4),
-            new AllocationInstruction(2,2),
-            new CompactInstruction(),
-            new AllocationInstruction(2,5),
-            new AllocationInstruction(6,10),
-            new DeallocationInstruction(6)//,
-            //new CompactInstruction()
-    ));
-    SimulationInstance sim = new SimulationInstanceImpl(
-            instr,
-            new MemoryImpl(25),
-            StrategyType.BEST_FIT);
-
-    int step = 0; 
-}
 /**
      * Stress test to validate behavior under heavy allocation and deallocation.
      * Allocates and deallocates blocks of varying sizes in a large memory space.
@@ -3289,5 +3264,66 @@ void AllocationTest() {
 
       assertEquals(false, sim1.getMemory().equals(sim2.getMemory()), "Was not false as expected");
     }
+
+    
+@Test
+void NegativeIDBestfitTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+        new AllocationInstruction(-1,5),
+        new AllocationInstruction(-2,5),
+        new AllocationInstruction(3,5),
+        new AllocationInstruction(-4,5),
+        new DeallocationInstruction(-1),
+        new DeallocationInstruction(3),
+        new AllocationInstruction(-5,5)
+        //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(20),
+            StrategyType.BEST_FIT);
+
+    sim.runAll();
+    assertFalse(sim.getMemory().containsProcess(-1));
+    assertTrue(sim.getMemory().containsProcess(-2));
+    assertFalse(sim.getMemory().containsProcess(3));
+    assertTrue(sim.getMemory().containsProcess(-4));
+    assertTrue(sim.getMemory().containsProcess(-5));
+
+    ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
+    assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(-5));
+
+    assertFalse(sim.getMemory().containsProcess(-3));
+
+}
+
+
+@Test
+void NegativeIDWorstfitTest() {
+    Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
+            new AllocationInstruction(-1,5),
+            new AllocationInstruction(1,5),
+            new AllocationInstruction(-3,5),
+            new AllocationInstruction(4,5),
+            new DeallocationInstruction(-1),
+            new DeallocationInstruction(-3),
+            new AllocationInstruction(-5,5)
+            //new CompactInstruction()
+    ));
+    SimulationInstance sim = new SimulationInstanceImpl(
+            instr,
+            new MemoryImpl(25),
+            StrategyType.WORST_FIT);
+
+    
+   sim.runAll();
+   assertFalse(sim.getMemory().containsProcess(-1));
+   assertTrue(sim.getMemory().containsProcess(1));
+   assertFalse(sim.getMemory().containsProcess(-3));
+   assertTrue(sim.getMemory().containsProcess(4));
+   assertTrue(sim.getMemory().containsProcess(-5));
+   ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
+   assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(-5));
+}
 }
 

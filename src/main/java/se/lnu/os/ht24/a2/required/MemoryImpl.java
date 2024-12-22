@@ -17,6 +17,7 @@ public class MemoryImpl implements Memory {
     private final int size;
     private Dictionary<Integer, Integer> memory = new Hashtable<Integer, Integer>();
     private Dictionary<Integer, Integer> blockListAllocated = new Hashtable<Integer, Integer>();
+    private int emptyID;
 
     /**
      * This class is the memory simulation, the parameter "Size" is the size of the memory.
@@ -24,13 +25,14 @@ public class MemoryImpl implements Memory {
     public MemoryImpl(int size){
         // set the size.
         this.size = size;
+        emptyID = -1;
         // set a counter to create the memory of the same size.
         // The memory consiste of a dictionay hashTable containing the range of the memory point and the id of the block assigned to him
         // If the memory is not assigned, it get the default number of "-1"
         int counter = size - 1;
         while (0 <= counter) {
             // set the range of the memory and the default value.
-            memory.put(counter, -1);
+            memory.put(counter, emptyID);
             counter = counter - 1;
         }
     }
@@ -46,6 +48,13 @@ public class MemoryImpl implements Memory {
      * False -> error : creation of an exeption.
      */
     public boolean AllocateBlock(int idBlock, int dimension, StrategyType strategy) {
+
+        
+        //FIX
+        if (idBlock == emptyID) {
+            switchEmptyID();
+        }
+
         // memoryAvaible is a counter to count the size of the block avaible.
         //CurrentMemory is the current block selected
         int memoryAvaible = 0;
@@ -78,11 +87,11 @@ public class MemoryImpl implements Memory {
             revArrayList.add(list.get(i));
         }
 
-        // veryfy each memory piece avaibility.
+        // verify each memory piece avaibility.
         for (int key : revArrayList) {
             // if memory avaible : add 1 to the memory avaible and arraylist of the current block.
             // if the block is not avaible, we verify if the object have gone thru is the biggest or the smallest.
-            if (memory.get(key) != -1) {
+            if (memory.get(key) != emptyID) {
                 if (memoryAvaible >= dimension) {
                     if (currentMemory.size() > biggestMemory.size()) {
                         biggestMemory.clear();
@@ -107,7 +116,7 @@ public class MemoryImpl implements Memory {
                 // clear the currently selected block.
                 memoryAvaible = 0;
                 currentMemory.clear();
-            } else if (memory.get(key) == -1) {
+            } else if (memory.get(key) == emptyID) {
                 memoryAvaible = memoryAvaible + 1;
                 currentMemory.add(key);
             }
@@ -183,7 +192,7 @@ public class MemoryImpl implements Memory {
         while (id.hasMoreElements()) {
             int key = id.nextElement();
             if (memory.get(key) == idBlock) {
-                memory.put(key, -1);
+                memory.put(key, emptyID);
             }
         }
         // remove from the list
@@ -230,9 +239,12 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the method that returns the dimension of the block with blockId
             in the memory, 0 if it is not allocated.
          */
-
+        if (blockId == emptyID) {
+            return 0;
+        }
         // get throu all the allocated dictionairy.
         // if the blockid is registered, return it's dimension.
+
         Enumeration<Integer> id = blockListAllocated.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
@@ -250,6 +262,10 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the method that returns a BlockInterval instance containing the
             lower and upper address in memory of the block with blockId. Return null if the block is not allocated
          */
+        if (blockId == emptyID) {
+            return null;
+        }
+
         int high = 0;
         int low = 0;
         boolean allocated = false;
@@ -288,7 +304,7 @@ public class MemoryImpl implements Memory {
         Enumeration<Integer> id2 = memory.keys();
         while (id2.hasMoreElements()) {
             int key = id2.nextElement();
-            if(test.contains(memory.get(key)) == false && memory.get(key).equals(-1) == false) {
+            if(test.contains(memory.get(key)) == false && memory.get(key).equals(emptyID) == false) {
                 test.add(memory.get(key));
             }
         }
@@ -303,7 +319,7 @@ public class MemoryImpl implements Memory {
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
-            memory.put(key, -1);
+            memory.put(key, emptyID);
         }
 
         // reasign each block to the reseted memory.
@@ -342,7 +358,7 @@ public class MemoryImpl implements Memory {
         }
         // check if the neighbour with the lower memory exist.
         // if it exist, the lower neighbour is register
-        else if (memory.get(block.getLowAddress() - 1) == -1) {
+        else if (memory.get(block.getLowAddress() - 1) == emptyID) {
             lower = false;
         } else {
             lowBlockId = memory.get(block.getLowAddress() - 1);
@@ -353,7 +369,7 @@ public class MemoryImpl implements Memory {
         // same for the higher.
         if (block.getHighAddress() == size - 1) {
             high = false;
-        } else if (memory.get(block.getHighAddress() + 1) == -1) {
+        } else if (memory.get(block.getHighAddress() + 1) == emptyID) {
             high = false;
         } else {
             highBlockId = memory.get(block.getHighAddress() + 1);
@@ -387,7 +403,7 @@ public class MemoryImpl implements Memory {
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
-            if (memory.get(key) == -1) {
+            if (memory.get(key) == emptyID) {
                 freeMemory = freeMemory + 1;
                 currentBlock = currentBlock + 1;
             } else if (currentBlock > biggest) {
@@ -422,7 +438,7 @@ public class MemoryImpl implements Memory {
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
-            if (memory.get(key) == -1) {
+            if (memory.get(key) == emptyID) {
                 currentBlock = currentBlock + 1;
             } else if (currentBlock > biggest) {
                 biggest = currentBlock;
@@ -460,14 +476,14 @@ public class MemoryImpl implements Memory {
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
-            if (memory.get(key) == -1 && freeSlotStarted == false) {
+            if (memory.get(key) == emptyID && freeSlotStarted == false) {
                 System.out.println("Start a new free block:");
                 System.out.println(key + "Is the first starting slot");
                 currentSlot = key;
                 startingSlot = key;
                 freeSlotStarted = true;
                 System.out.println(startingSlot);
-            } else if (memory.get(key) == -1) {
+            } else if (memory.get(key) == emptyID) {
                 currentSlot = key;
             } else if (freeSlotStarted) {
                 System.out.println("End of the free block interval");
@@ -550,5 +566,25 @@ public class MemoryImpl implements Memory {
             }
         }
         return retStr.toString();
+    }
+
+    private void switchEmptyID() {
+        int oldID = emptyID;
+        boolean success = false;
+        while (success == false) {
+            emptyID = emptyID - 1;
+            if (this.containsProcess(emptyID) == false) {
+                success = true;
+            }
+        }
+        Enumeration<Integer> id = memory.keys();
+
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            if (memory.get(key) == oldID) {
+                memory.put(key, emptyID);
+            }
+        }
+
     }
 }
