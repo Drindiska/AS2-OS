@@ -26,15 +26,7 @@ public class MemoryImpl implements Memory {
         // set the size.
         this.size = size;
         emptyID = -1;
-        // set a counter to create the memory of the same size.
-        // The memory consiste of a dictionay hashTable containing the range of the memory point and the id of the block assigned to him
-        // If the memory is not assigned, it get the default number of "-1"
-        int counter = size - 1;
-        while (0 <= counter) {
-            // set the range of the memory and the default value.
-            memory.put(counter, emptyID);
-            counter = counter - 1;
-        }
+        resetMemory();
     }
 
 
@@ -68,24 +60,7 @@ public class MemoryImpl implements Memory {
         // as we uses different strategy we save the biggest and smalest avaible block of memory.
         ArrayList<Integer> biggestMemory = new ArrayList<Integer>();
         ArrayList<Integer> smalestMemory = new ArrayList<Integer>(size);
-        
-        // We will go throug all the memory slots.
-        // as we want to go from the first memory (0) to the last (n)
-        // we revert the list.
-        Enumeration<Integer> id = memory.keys();
-        List<Integer> list = new ArrayList<>();
-
-        // create an array list form the enumeration.
-        while (id.hasMoreElements()) {
-            int key = id.nextElement();
-            list.add(key);
-        }
-
-        // revert the array list.
-        ArrayList<Integer> revArrayList = new ArrayList<Integer>();
-        for (int i = list.size() - 1; i >= 0; i--) {
-            revArrayList.add(list.get(i));
-        }
+        ArrayList<Integer> revArrayList = getCurrentMemory();
 
         // verify each memory piece avaibility.
         for (int key : revArrayList) {
@@ -298,32 +273,16 @@ public class MemoryImpl implements Memory {
      * this funcrion compact the memory.
      */
     public void compact() {
-        ArrayList<Integer> test = new ArrayList<Integer>();
-        
-        // get the block id in reverse order
-        Enumeration<Integer> id2 = memory.keys();
-        while (id2.hasMoreElements()) {
-            int key = id2.nextElement();
-            if(test.contains(memory.get(key)) == false && memory.get(key).equals(emptyID) == false) {
-                test.add(memory.get(key));
+        ArrayList<Integer> revArrayList =  getCurrentMemory();
+        ArrayList<Integer> finalList = new ArrayList<Integer>();
+        for (int key: revArrayList) {
+            if (finalList.contains(memory.get(key)) == false && memory.get(key).equals(emptyID) == false) {
+                finalList.add(memory.get(key));
             }
         }
-
-        // revert the array list.
-        ArrayList<Integer> revArrayList2 = new ArrayList<Integer>();
-        for (int i = test.size() - 1; i >= 0; i--) {
-            revArrayList2.add(test.get(i));
-        }
-
-        // reset all the memory.
-        Enumeration<Integer> id = memory.keys();
-        while (id.hasMoreElements()) {
-            int key = id.nextElement();
-            memory.put(key, emptyID);
-        }
-
+        resetMemory();
         // reasign each block to the reseted memory.
-        for (int key : revArrayList2) {
+        for (int key : finalList) {
             int dimmension = blockListAllocated.get(key);
             blockListAllocated.remove(key);
             AllocateBlock(key, dimmension, StrategyType.FIRST_FIT);
@@ -586,6 +545,31 @@ public class MemoryImpl implements Memory {
                 memory.put(key, emptyID);
             }
         }
+    }
 
+    private ArrayList<Integer> getCurrentMemory() {
+        Enumeration<Integer> id = memory.keys();
+        List<Integer> list = new ArrayList<>();
+    
+        // create an array list form the enumeration.
+        while (id.hasMoreElements()) {
+            int key = id.nextElement();
+            list.add(key);
+        }
+        // revert the array list.
+        ArrayList<Integer> revArrayList = new ArrayList<Integer>();
+        for (int i = list.size() - 1; i >= 0; i--) {
+            revArrayList.add(list.get(i));
+        }
+        return revArrayList;
+    }
+
+    private void resetMemory() {
+        int counter = size - 1;
+        while (0 <= counter) {
+            // set the range of the memory and the default value.
+            memory.put(counter, emptyID);
+            counter = counter - 1;
+        }
     }
 }
