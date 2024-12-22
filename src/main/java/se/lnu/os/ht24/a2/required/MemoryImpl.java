@@ -29,7 +29,6 @@ public class MemoryImpl implements Memory {
         resetMemory();
     }
 
-
     /**
      * This function tries to allocate the bloc in the memory.
      * @param idBlock is the id of the block.
@@ -40,28 +39,21 @@ public class MemoryImpl implements Memory {
      * False -> error : creation of an exeption.
      */
     public boolean AllocateBlock(int idBlock, int dimension, StrategyType strategy) {
-
-        
-        //FIX
-        if (idBlock == emptyID) {
+        if (idBlock == emptyID) { //Prevent usage of the Empty block ID
             switchEmptyID();
         }
-
         // memoryAvaible is a counter to count the size of the block avaible.
         //CurrentMemory is the current block selected
         int memoryAvaible = 0;
         ArrayList<Integer> currentMemory = new ArrayList<Integer>();
-
         if (this.containsProcess(idBlock)) {
             System.out.println("Error : already exist");
             return false;
         }
-
         // as we uses different strategy we save the biggest and smalest avaible block of memory.
         ArrayList<Integer> biggestMemory = new ArrayList<Integer>();
         ArrayList<Integer> smalestMemory = new ArrayList<Integer>(size);
         ArrayList<Integer> revArrayList = getCurrentMemory();
-
         // verify each memory piece avaibility.
         for (int key : revArrayList) {
             // if memory avaible : add 1 to the memory avaible and arraylist of the current block.
@@ -95,7 +87,6 @@ public class MemoryImpl implements Memory {
                 memoryAvaible = memoryAvaible + 1;
                 currentMemory.add(key);
             }
-
             // if the memory is enough to put the instruction and the strategy is the first fit.
             if (memoryAvaible >= dimension && strategy == StrategyType.FIRST_FIT) {
                 // we set the memory to taken.
@@ -111,14 +102,12 @@ public class MemoryImpl implements Memory {
         if (currentMemory.size() > biggestMemory.size() && memoryAvaible >= dimension) {
             biggestMemory = currentMemory;
         }
-
         if (smalestMemory.size() == 0) {
             smalestMemory = currentMemory;
         }
         if ((currentMemory.size() < smalestMemory.size() && memoryAvaible >= dimension)) {
             smalestMemory = currentMemory;
         }
-
         // we verify the strategy and add the block to the memory if their is enough place
         if (biggestMemory.size() >= dimension && strategy == StrategyType.WORST_FIT) {
                 // we set the memory to taken.
@@ -155,13 +144,11 @@ public class MemoryImpl implements Memory {
      * @return False : exeption found / True : success.
      */
     public boolean unAllocate(int idBlock) {
-
         // if object is unassigned or is not in the assigned list, return exeption.
         if (((Hashtable<Integer, Integer>) blockListAllocated).containsKey(idBlock) == false) {
             System.out.println("Error : the block is not assigned");
             return false;
         }
-        
         // Reset the memory dictionary assigned to the block.
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
@@ -178,7 +165,6 @@ public class MemoryImpl implements Memory {
     @Override
     public boolean containsProcess(int blockId) {
         // TODO Replace this return statement with the method that checks if blockId is allocated in the memory
-
         // if the id is in the assigned list, return true.
         Enumeration<Integer> id = blockListAllocated.keys();
         while (id.hasMoreElements()) {
@@ -196,9 +182,7 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the list of blockIds of the currently allocated blocks
             in the memory. If the memory is empty, return an empty List.
          */
-
         List<Integer> listIds = new ArrayList<Integer>();
-
         // add all the ids in the allocated disctionnairy to a arraylist.
         Enumeration<Integer> id = blockListAllocated.keys();
         while (id.hasMoreElements()) {
@@ -219,7 +203,6 @@ public class MemoryImpl implements Memory {
         }
         // get throu all the allocated dictionairy.
         // if the blockid is registered, return it's dimension.
-
         Enumeration<Integer> id = blockListAllocated.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
@@ -240,12 +223,10 @@ public class MemoryImpl implements Memory {
         if (blockId == emptyID) {
             return null;
         }
-
         int high = 0;
         int low = 0;
         boolean allocated = false;
         Enumeration<Integer> id = memory.keys();
-
         // go throu all the memory, get the high memory and low using the indicator "allocated"
         // that indicate if the id has been found.
         while (id.hasMoreElements()) {
@@ -300,18 +281,14 @@ public class MemoryImpl implements Memory {
 
         System.out.println("starting the methode Neighboring proccess for :" + blockId);
         Set<Integer> neighbor = new HashSet<>(); 
-        
         //uses boolean to check if the lower and higher have been found.
         boolean lower = true;
         boolean high = true;
         int lowBlockId = 0;
         int highBlockId = 0;
-
         System.out.println("Initalization of all the basic parameters needed:");
-
         // check if the lower exist
         ProcessInterval block = getProcessInterval(blockId);
-
         if (block.getLowAddress() == 0) {
             lower = false;
         }
@@ -322,9 +299,7 @@ public class MemoryImpl implements Memory {
         } else {
             lowBlockId = memory.get(block.getLowAddress() - 1);
         }
-
         System.out.println("lower exist : first step passed");
-
         // same for the higher.
         if (block.getHighAddress() == size - 1) {
             high = false;
@@ -333,7 +308,6 @@ public class MemoryImpl implements Memory {
         } else {
             highBlockId = memory.get(block.getHighAddress() + 1);
         }
-
         //we add them in the set.
         if (lower) {
             neighbor.add(lowBlockId);
@@ -341,7 +315,6 @@ public class MemoryImpl implements Memory {
         if (high) {
             neighbor.add(highBlockId);
         }
-
         return neighbor;
     }
 
@@ -351,12 +324,9 @@ public class MemoryImpl implements Memory {
             Replace this return statement with the method that returns the memory fragmentation value. There is
             no need to round decimals, as the Tests will do it before checking.
          */
-
-        
         double biggest = 0;
         double currentBlock = 0;
         double freeMemory = 0;
-        
         // simple calculation with the help of the formula given.
         // here we calculate the freememory and the biggest block of free memory.
         Enumeration<Integer> id = memory.keys();
@@ -372,7 +342,6 @@ public class MemoryImpl implements Memory {
                 currentBlock = 0;
             }
         }
-
         if (currentBlock > biggest) {
             biggest = currentBlock;
             currentBlock = 0;
@@ -380,8 +349,6 @@ public class MemoryImpl implements Memory {
         if (freeMemory == 0) {
             return 0;
         }
-
-
         double fragmentation = 1 - (biggest/freeMemory);
         if (biggest == 0) {
             return 0;
@@ -393,7 +360,6 @@ public class MemoryImpl implements Memory {
     public int getBiggestMemoryAvaible() {
         int biggest = 0;
         int currentBlock = 0;
-        
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
             int key = id.nextElement();
@@ -414,7 +380,6 @@ public class MemoryImpl implements Memory {
     
     @Override
     public Set<ProcessInterval> freeSlots() {
-
         System.out.println("-- START FREESLOT COUNT --");
         /* TODO
             Replace this return statement with the method that returns the set of BlockInterval instances
@@ -426,11 +391,9 @@ public class MemoryImpl implements Memory {
 
         // we save all free set of memory in this hash set. 
         Set<ProcessInterval> freeslots = new HashSet<>();
-
         int startingSlot = 0;
         int currentSlot = 0;
         boolean freeSlotStarted = false;
-        
         // we go throu all the memory and take each set, put them in the list.
         Enumeration<Integer> id = memory.keys();
         while (id.hasMoreElements()) {
@@ -470,25 +433,16 @@ public class MemoryImpl implements Memory {
             whenever AssertEquals is called and should return true only when the Memories are structured exactly in
             the same way (same dimension, blocks and disposition), regardless of the Simulation they come from.
          */
-
-        // we assume the object given is from the interface memory
-
-        System.out.println("Starting the verification");
-
-        System.out.println("Verification of each block:");
         if (o instanceof MemoryImpl) {
             MemoryImpl comparedMemory = (MemoryImpl) o;
             if (this.size != comparedMemory.size) {
                 return false;
             }
             for (int key : this.processes()) {
-                System.out.println("Verification of the block with " + key);
                 if (comparedMemory.containsProcess(key) == false) {
-                    System.out.println("------- CASE 1");
                     return false;
                 }
                 if (comparedMemory.getProcessInterval(key).getHighAddress() != this.getProcessInterval(key).getHighAddress()) {
-                    System.out.println("------- CASE 2");
                     return false;
                 }
                 if (comparedMemory.getProcessInterval(key).getLowAddress() != this.getProcessInterval(key).getLowAddress()) {
@@ -505,7 +459,6 @@ public class MemoryImpl implements Memory {
             System.out.println("Wrong instance");
             return false;
         }
-    
     }
 
     @Override
@@ -538,7 +491,6 @@ public class MemoryImpl implements Memory {
             }
         }
         Enumeration<Integer> id = memory.keys();
-
         while (id.hasMoreElements()) {
             int key = id.nextElement();
             if (memory.get(key) == oldID) {
@@ -550,13 +502,10 @@ public class MemoryImpl implements Memory {
     private ArrayList<Integer> getCurrentMemory() {
         Enumeration<Integer> id = memory.keys();
         List<Integer> list = new ArrayList<>();
-    
-        // create an array list form the enumeration.
         while (id.hasMoreElements()) {
             int key = id.nextElement();
             list.add(key);
         }
-        // revert the array list.
         ArrayList<Integer> revArrayList = new ArrayList<Integer>();
         for (int i = list.size() - 1; i >= 0; i--) {
             revArrayList.add(list.get(i));
@@ -567,7 +516,6 @@ public class MemoryImpl implements Memory {
     private void resetMemory() {
         int counter = size - 1;
         while (0 <= counter) {
-            // set the range of the memory and the default value.
             memory.put(counter, emptyID);
             counter = counter - 1;
         }
