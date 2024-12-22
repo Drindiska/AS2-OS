@@ -497,35 +497,40 @@ public class MemoryImpl implements Memory {
          */
 
         // we assume the object given is from the interface memory
-        Memory comparedMemory = (Memory) o;
 
         System.out.println("Starting the verification");
-        System.out.println("Verification between our memory:" + this.processes());
-        System.out.println("and the outsider memory :" + comparedMemory.processes());
-
 
         System.out.println("Verification of each block:");
-        
-        for (int key : this.processes()) {
-            System.out.println("Verification of the block with " + key);
-            if (comparedMemory.containsProcess(key) == false) {
-                System.out.println("------- CASE 3");
+        if (o instanceof MemoryImpl) {
+            MemoryImpl comparedMemory = (MemoryImpl) o;
+            if (this.size != comparedMemory.size) {
                 return false;
             }
-            if (comparedMemory.getProcessInterval(key).getHighAddress() != this.getProcessInterval(key).getHighAddress()) {
-                System.out.println("------- CASE 4");
-                return false;
+            for (int key : this.processes()) {
+                System.out.println("Verification of the block with " + key);
+                if (comparedMemory.containsProcess(key) == false) {
+                    System.out.println("------- CASE 1");
+                    return false;
+                }
+                if (comparedMemory.getProcessInterval(key).getHighAddress() != this.getProcessInterval(key).getHighAddress()) {
+                    System.out.println("------- CASE 2");
+                    return false;
+                }
+                if (comparedMemory.getProcessInterval(key).getLowAddress() != this.getProcessInterval(key).getLowAddress()) {
+                    System.out.println("------- CASE 3");
+                    return false;
+                }
+                if (comparedMemory.processSize(key) != this.processSize(key)) {
+                    System.out.println("------- CASE 4");
+                    return false;
+                }
             }
-            if (comparedMemory.getProcessInterval(key).getLowAddress() != this.getProcessInterval(key).getLowAddress()) {
-                System.out.println("------- CASE 4");
-                return false;
-            }
-            if (comparedMemory.processSize(key) != this.processSize(key)) {
-                System.out.println("------- CASE 5");
-                return false;
-            }
-        }
         return true;
+        } else {
+            System.out.println("Wrong instance");
+            return false;
+        }
+    
     }
 
     @Override

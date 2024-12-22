@@ -3066,52 +3066,61 @@ void customTest() {
 
 
 @Test
-void FragmentationTest() {
+void BestfitTest() {
     Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
-            new AllocationInstruction(1,5),
-            new AllocationInstruction(2,3),
-            new AllocationInstruction(3,8),
-            new AllocationInstruction(4,4),
-            new AllocationInstruction(5,2),
-            new DeallocationInstruction(2),
-            new DeallocationInstruction(4),
-            new AllocationInstruction(2,2),
-            new CompactInstruction(),
-            new AllocationInstruction(2,5),
-            new AllocationInstruction(6,10),
-            new DeallocationInstruction(6)//,
-            //new CompactInstruction()
+        new AllocationInstruction(1,5),
+        new AllocationInstruction(2,5),
+        new AllocationInstruction(3,5),
+        new AllocationInstruction(4,5),
+        new DeallocationInstruction(1),
+        new DeallocationInstruction(3),
+        new AllocationInstruction(5,5)
+        //new CompactInstruction()
     ));
     SimulationInstance sim = new SimulationInstanceImpl(
             instr,
-            new MemoryImpl(25),
+            new MemoryImpl(20),
             StrategyType.BEST_FIT);
+
+    sim.runAll();
+    assertFalse(sim.getMemory().containsProcess(1));
+    assertTrue(sim.getMemory().containsProcess(2));
+    assertFalse(sim.getMemory().containsProcess(3));
+    assertTrue(sim.getMemory().containsProcess(4));
+    assertTrue(sim.getMemory().containsProcess(5));
+
+    ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
+    assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(5));
+
 }
 
 
 @Test
-void IntervalTest() {
+void WorstfitTest() {
     Queue<Instruction> instr = new ArrayDeque<>(Arrays.asList(
             new AllocationInstruction(1,5),
-            new AllocationInstruction(2,3),
-            new AllocationInstruction(3,8),
-            new AllocationInstruction(4,4),
-            new AllocationInstruction(5,2),
-            new DeallocationInstruction(2),
-            new DeallocationInstruction(4),
-            new AllocationInstruction(2,2),
-            new CompactInstruction(),
             new AllocationInstruction(2,5),
-            new AllocationInstruction(6,10),
-            new DeallocationInstruction(6)//,
+            new AllocationInstruction(3,5),
+            new AllocationInstruction(4,5),
+            new DeallocationInstruction(1),
+            new DeallocationInstruction(3),
+            new AllocationInstruction(5,5)
             //new CompactInstruction()
     ));
     SimulationInstance sim = new SimulationInstanceImpl(
             instr,
             new MemoryImpl(25),
-            StrategyType.BEST_FIT);
+            StrategyType.WORST_FIT);
 
-    int step = 0; 
+    
+   sim.runAll();
+   assertFalse(sim.getMemory().containsProcess(1));
+   assertTrue(sim.getMemory().containsProcess(2));
+   assertFalse(sim.getMemory().containsProcess(3));
+   assertTrue(sim.getMemory().containsProcess(4));
+   assertTrue(sim.getMemory().containsProcess(5));
+   ProcessInterval proccessIntervalTest = new ProcessInterval(0, 4);
+   assertEquals(proccessIntervalTest, sim.getMemory().getProcessInterval(5));
 }
 
 
@@ -3227,5 +3236,58 @@ void AllocationTest() {
         assertTrue(sim.getMemory().fragmentation() < 0.05); // Minimal fragmentation
     }
 
+    @Test
+    void CompareMemoriesTrue() {
+
+      Queue<Instruction> instr1 = new ArrayDeque<>(Arrays.asList(
+        new DeallocationInstruction(100),
+        new AllocationInstruction(1,5)
+      ));
+
+      SimulationInstance sim1 = new SimulationInstanceImpl(
+        instr1,
+        new MemoryImpl(10),
+        StrategyType.FIRST_FIT);
+      
+      // Test if equal?! :DD
+
+      Queue<Instruction> instr2 = new ArrayDeque<>(Arrays.asList(
+        new DeallocationInstruction(100),
+        new AllocationInstruction(1,5)
+      ));
+
+      SimulationInstance sim2 = new SimulationInstanceImpl(
+        instr2,
+        new MemoryImpl(10),
+        StrategyType.FIRST_FIT);
+
+      assertEquals(true, sim1.getMemory().equals(sim2.getMemory()), "Was not true as expected");
+    }
+
+    @Test
+    void CompareMemoriesFalse() {
+
+      Queue<Instruction> instr1 = new ArrayDeque<>(Arrays.asList(
+        new DeallocationInstruction(100),
+        new AllocationInstruction(1,5)
+      ));
+
+      SimulationInstance sim1 = new SimulationInstanceImpl(
+        instr1,
+        new MemoryImpl(4),
+        StrategyType.FIRST_FIT);
+
+      Queue<Instruction> instr2 = new ArrayDeque<>(Arrays.asList(
+        new DeallocationInstruction(100),
+        new AllocationInstruction(1,5)
+      ));
+
+      SimulationInstance sim2 = new SimulationInstanceImpl(
+        instr2,
+        new MemoryImpl(10),
+        StrategyType.FIRST_FIT);
+
+      assertEquals(false, sim1.getMemory().equals(sim2.getMemory()), "Was not false as expected");
+    }
 }
 
