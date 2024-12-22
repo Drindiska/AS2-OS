@@ -20,12 +20,12 @@ public class MemoryImpl implements Memory {
     private int emptyID;
 
     /**
-     * This class is the memory simulation, the parameter "Size" is the size of the memory.
+     * Set up the memory simulator
+     * @param size is the size of the memory
      */
     public MemoryImpl(int size){
-        // set the size.
         this.size = size;
-        emptyID = -1;
+        emptyID = -1; //Set up the id for empty blocks of memory
         resetMemory();
     }
 
@@ -42,15 +42,11 @@ public class MemoryImpl implements Memory {
         if (idBlock == emptyID) { //Prevent usage of the Empty block ID
             switchEmptyID();
         }
-        // memoryAvaible is a counter to count the size of the block avaible.
-        //CurrentMemory is the current block selected
-        int memoryAvaible = 0;
-        ArrayList<Integer> currentMemory = new ArrayList<Integer>();
         if (this.containsProcess(idBlock)) {
-            System.out.println("Error : already exist");
             return false;
         }
-        // as we uses different strategy we save the biggest and smalest avaible block of memory.
+        int memoryAvaible = 0;
+        ArrayList<Integer> currentMemory = new ArrayList<Integer>();
         ArrayList<Integer> biggestMemory = new ArrayList<Integer>();
         ArrayList<Integer> smalestMemory = new ArrayList<Integer>(size);
         ArrayList<Integer> revArrayList = getCurrentMemory();
@@ -388,7 +384,6 @@ public class MemoryImpl implements Memory {
             and 100-199 will be considered an error, while adding 0-199 is the only correct solution). If the
             memory is full, return an empty Set.
          */
-
         // we save all free set of memory in this hash set. 
         Set<ProcessInterval> freeslots = new HashSet<>();
         int startingSlot = 0;
@@ -487,7 +482,6 @@ public class MemoryImpl implements Memory {
             emptyID = emptyID - 1;
             if (this.containsProcess(emptyID) == false) {
                 success = true;
-                System.out.println("NEW ID FOR EMPTY SLOT: " + emptyID);
             }
         }
         Enumeration<Integer> id = memory.keys();
