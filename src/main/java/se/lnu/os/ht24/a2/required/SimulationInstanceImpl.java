@@ -36,22 +36,8 @@ public class SimulationInstanceImpl implements SimulationInstance {
          */
 
         while (remainingInstructions.size() > 0) {
-            boolean success = true;
             Instruction instruction = remainingInstructions.remove();
-            if (instruction instanceof AllocationInstruction) {
-                AllocationInstruction allocation = (AllocationInstruction) instruction;
-                success = memory.AllocateBlock(allocation.getProcessId(), allocation.getDimension(), strategyType);
-            } else if (instruction instanceof DeallocationInstruction) {
-                DeallocationInstruction allocation = (DeallocationInstruction) instruction;
-                success = memory.unAllocate(allocation.getProcessId());
-            } else {
-                memory.compact();
-            }
-            if (success == false) {
-                instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
-                System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
-            }
-            
+            executeInstruction(instruction);
         }
     }
 
@@ -61,28 +47,31 @@ public class SimulationInstanceImpl implements SimulationInstance {
             Implement the method to run a stepped simulation (one step = one instruction). If steps > actual available
             instructions, just run all the simulation.
          */
-        
-        boolean success = true;
         if (steps >= remainingInstructions.size()) {
             runAll();
         } else {
             while (steps > 0) {
                 Instruction instruction = remainingInstructions.remove();
-                if (instruction instanceof AllocationInstruction) {
-                    AllocationInstruction allocation = (AllocationInstruction) instruction;
-                    success = memory.AllocateBlock(allocation.getProcessId(), allocation.getDimension(), strategyType);
-                } else if (instruction instanceof DeallocationInstruction) {
-                    DeallocationInstruction allocation = (DeallocationInstruction) instruction;
-                    success = memory.unAllocate(allocation.getProcessId());
-                } else {
-                    memory.compact();
-                }
-                if (success == false) {
-                    instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
-                    System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
-                }
+                executeInstruction(instruction);
                 steps = steps - 1;
             }
+        }
+    }
+
+    private void executeInstruction(Instruction instruction) {
+        boolean success = true;
+        if (instruction instanceof AllocationInstruction) {
+            AllocationInstruction allocation = (AllocationInstruction) instruction;
+            success = memory.AllocateBlock(allocation.getProcessId(), allocation.getDimension(), strategyType);
+        } else if (instruction instanceof DeallocationInstruction) {
+            DeallocationInstruction allocation = (DeallocationInstruction) instruction;
+            success = memory.unAllocate(allocation.getProcessId());
+        } else {
+            memory.compact();
+        }
+        if (success == false) {
+            instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+            System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
         }
     }
 
