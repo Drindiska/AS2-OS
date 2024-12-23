@@ -140,8 +140,7 @@ public class MemoryImpl implements Memory {
      * @return False : exeption found / True : success.
      */
     public boolean unAllocate(int idBlock) {
-        // if object is unassigned or is not in the assigned list, return exeption.
-        if (((Hashtable<Integer, Integer>) blockListAllocated).containsKey(idBlock) == false) {
+        if (this.containsProcess(idBlock) == false) {
             System.out.println("Error : the block is not assigned");
             return false;
         }
