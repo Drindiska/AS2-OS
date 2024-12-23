@@ -58,18 +58,28 @@ public class SimulationInstanceImpl implements SimulationInstance {
         }
     }
 
+    /**
+     * Execute an instruction.
+     * @param instruction is the instruction.
+     * if the instruction fail to execute, an instruction exception is created.
+     */
     private void executeInstruction(Instruction instruction) {
         boolean success = true;
-        if (instruction instanceof AllocationInstruction) {
-            AllocationInstruction allocation = (AllocationInstruction) instruction;
-            success = memory.AllocateBlock(allocation.getProcessId(), allocation.getDimension(), strategyType);
-        } else if (instruction instanceof DeallocationInstruction) {
-            DeallocationInstruction allocation = (DeallocationInstruction) instruction;
-            success = memory.unAllocate(allocation.getProcessId());
-        } else {
-            memory.compact();
-        }
-        if (success == false) {
+        try {
+            if (instruction instanceof AllocationInstruction) {
+                AllocationInstruction allocation = (AllocationInstruction) instruction;
+                success = memory.AllocateBlock(allocation.getProcessId(), allocation.getDimension(), strategyType);
+            } else if (instruction instanceof DeallocationInstruction) {
+                DeallocationInstruction allocation = (DeallocationInstruction) instruction;
+                success = memory.unAllocate(allocation.getProcessId());
+            } else {
+                memory.compact();
+            }
+            if (success == false) {
+                instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
+                System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
+            }         
+        } catch (Exception e) {
             instructionExceptions.add(new InstructionException(instruction, memory.getBiggestMemoryAvaible()));
             System.out.println("Failure on the instruction: " + instruction.toString() + "The available memory left is :" + memory.getBiggestMemoryAvaible());
         }
